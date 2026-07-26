@@ -1,4 +1,4 @@
-import { bindModalBackdrop, escapeHtml, hideModal, showModal } from './ui.js?v=3.0.0';
+import { bindModalBackdrop, escapeHtml, hideModal, showModal } from './ui.js';
 
 export function createPlanModal({ api, getLanguage, onSaved, showToast, t }) {
   const modal = document.getElementById('planModal');

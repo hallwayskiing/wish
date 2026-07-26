@@ -4,14 +4,18 @@
   "description": "A cosmic wishing well powered by Gemini and deployed by Cloudflare.",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
-    "check": "for file in src/*.js public/js/*.js public/admin/*.js; do node --check \"$file\" || exit 1; done"
+    "check": "find src -name '*.js' -exec node --check {} + && node --check vite.config.js"
   },
   "devDependencies": {
-    "wrangler": "^4.68.0"
+    "@cloudflare/vite-plugin": "^1.47.0",
+    "vite": "^8.1.5",
+    "wrangler": "^4.114.0"
   },
   "dependencies": {
     "qrcode": "^1.5.4"

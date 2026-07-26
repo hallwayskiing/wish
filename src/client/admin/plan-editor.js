@@ -1,4 +1,4 @@
-import { escapeHtml } from '../js/ui.js?v=3.0.0';
+import { escapeHtml } from '../ui.js';
 
 export function buildPlanForm(aiPlan) {
   const plan = aiPlan || {};

@@ -1,5 +1,5 @@
-import { createWishPoster } from './poster.js?v=3.0.0';
-import { escapeHtml } from './ui.js?v=3.0.0';
+import { createWishPoster } from './poster.js';
+import { escapeHtml } from './ui.js';
 
 const PAGE_LIMIT = 6;
 

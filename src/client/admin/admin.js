@@ -1,6 +1,10 @@
-import { adminApi as api } from './api.js?v=3.0.0';
-import { buildPlanForm } from './plan-editor.js?v=3.0.0';
-import { escapeHtml } from '../js/ui.js?v=3.0.0';
+import '../particles.js';
+import '../styles/style.css';
+import './admin.css';
+import './editor.css';
+import { adminApi as api } from './api.js';
+import { buildPlanForm } from './plan-editor.js';
+import { escapeHtml } from '../ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const loginPanel = document.getElementById('loginPanel');

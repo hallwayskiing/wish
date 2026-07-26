@@ -1,8 +1,13 @@
-import { WishAPI } from './api.js?v=3.0.0';
-import { createPlanModal } from './plan-modal.js?v=3.0.0';
-import { translations } from './translations.js?v=3.0.0';
-import { bindModalBackdrop, hideModal, showModal, showToast } from './ui.js?v=3.0.0';
-import { createWishWall } from './wish-wall.js?v=3.0.0';
+import './particles.js';
+import './styles/style.css';
+import './styles/wish.css';
+import './styles/modal.css';
+import './styles/wall.css';
+import { WishAPI } from './api.js';
+import { createPlanModal } from './plan-modal.js';
+import { translations } from './translations.js';
+import { bindModalBackdrop, hideModal, showModal, showToast } from './ui.js';
+import { createWishWall } from './wish-wall.js';
 
 /* ==========================================================================
    Main Application UI Script - 璀璨许愿阁 (Bilingual Cosmic Wish Realizer)

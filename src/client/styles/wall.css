@@ -33,7 +33,7 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .filter-pills {
@@ -64,14 +64,14 @@
 }
 
 .filter-pill:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-hover);
   color: var(--text-primary);
   border-color: var(--border-medium);
 }
 
 .filter-pill.active {
-  background: rgba(207, 176, 126, 0.10);
-  border-color: rgba(207, 176, 126, 0.35);
+  background: var(--accent-muted);
+  border-color: var(--border-accent-strong);
   color: var(--accent);
 }
 
@@ -86,7 +86,7 @@
 .search-box {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--bg-control);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   padding: 0.35rem 1rem;
@@ -129,7 +129,7 @@
   padding: 0.35rem 0.85rem;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--bg-control);
   color: var(--text-secondary);
   font: 500 0.82rem var(--font-sans);
   white-space: nowrap;
@@ -217,7 +217,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .card-cat-badge {
@@ -225,7 +225,7 @@
   font-weight: 500;
   padding: 0.2rem 0.7rem;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-hover);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   letter-spacing: 0.02em;
@@ -241,7 +241,7 @@
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.55;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -304,7 +304,7 @@
 
 .btn-bless:hover:not(:disabled) {
   background: var(--accent-glow);
-  border-color: rgba(207, 176, 126, 0.30);
+  border-color: var(--border-accent);
   color: var(--accent);
 }
 
@@ -330,7 +330,7 @@
 
 .btn-bless.blessed {
   background: var(--accent-glow);
-  border-color: rgba(207, 176, 126, 0.30);
+  border-color: var(--border-accent);
   color: var(--accent);
 }
 
@@ -339,8 +339,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
-  background: rgba(207, 176, 126, 0.07);
-  border: 1px solid rgba(207, 176, 126, 0.18);
+  background: var(--accent-faint);
+  border: 1px solid var(--border-accent-soft);
   color: var(--accent-dim);
   font: 500 0.85rem var(--font-sans);
   cursor: pointer;
@@ -353,7 +353,7 @@
   color: var(--accent);
   background: rgba(207, 176, 126, 0.14);
   border-color: rgba(207, 176, 126, 0.38);
-  box-shadow: 0 0 16px rgba(207, 176, 126, 0.08);
+  box-shadow: var(--shadow-accent-glow);
   transform: translateY(-1px);
 }
 
@@ -405,7 +405,7 @@
 
 .empty-icon {
   font-size: 2.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
   opacity: 0.5;
 }
 
@@ -415,7 +415,7 @@
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
   margin-top: 2.8rem;
 }
 
@@ -440,13 +440,13 @@
 .page-btn:hover:not(:disabled) {
   border-color: var(--border-medium);
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-active);
   transform: translateY(-1px);
 }
 
 .page-btn.active {
-  background: rgba(207, 176, 126, 0.12);
-  border-color: rgba(207, 176, 126, 0.4);
+  background: var(--accent-soft);
+  border-color: var(--accent-strong);
   color: var(--accent);
   font-weight: 700;
 }

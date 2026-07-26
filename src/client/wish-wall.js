@@ -1,7 +1,15 @@
-import { createWishPoster } from './poster.js';
 import { escapeHtml } from './ui.js';
 
 const PAGE_LIMIT = 6;
+let posterModulePromise;
+
+function loadPosterModule() {
+  posterModulePromise ||= import('./poster.js').catch(error => {
+    posterModulePromise = null;
+    throw error;
+  });
+  return posterModulePromise;
+}
 
 export function createWishWall({
   api,
@@ -165,6 +173,7 @@ export function createWishWall({
     if (button.classList.contains('btn-share')) {
       button.disabled = true;
       try {
+        const { createWishPoster } = await loadPosterModule();
         const poster = await createWishPoster(wish, { language: getLanguage(), t });
         openPosterModal(poster.blob, poster.filename);
       } catch (error) {

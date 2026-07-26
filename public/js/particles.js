@@ -3,11 +3,19 @@
    ========================================================================== */
 
 (function() {
+  const STAR_COLORS = [
+    'rgba(255, 255, 255, 1)',
+    'rgba(255, 255, 255, 0.8)',
+    'rgba(232, 220, 198, 0.9)',
+    'rgba(207, 176, 126, 0.6)',
+    'rgba(200, 200, 210, 0.7)'
+  ];
   const canvas = document.getElementById('particleCanvas');
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
-  let width, height;
+  let width = 0;
+  let height = 0;
   let particles = [];
   let meteors = [];
 
@@ -18,35 +26,18 @@
   }
 
   function createParticles() {
-    particles = [];
-    // Rich starfield density
     const count = Math.floor((width * height) / 9000);
-
-    for (let i = 0; i < count; i++) {
-      particles.push({
+    particles = Array.from({ length: count }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
         radius: Math.random() * 1.6 + 0.3,
-        color: getColor(),
+        color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
         alpha: Math.random() * 0.8 + 0.15,
         twinkleSpeed: (Math.random() * 0.012 + 0.003) * (Math.random() < 0.5 ? 1 : -1),
         vx: (Math.random() - 0.5) * 0.1,
         vy: (Math.random() - 0.5) * 0.1,
-        glow: Math.random() < 0.18  // ~18% of stars get a soft glow
-      });
-    }
-  }
-
-  function getColor() {
-    // Warm neutral palette only
-    const colors = [
-      'rgba(255, 255, 255, 1)',
-      'rgba(255, 255, 255, 0.8)',
-      'rgba(232, 220, 198, 0.9)',
-      'rgba(207, 176, 126, 0.6)',
-      'rgba(200, 200, 210, 0.7)'
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
+        glow: Math.random() < 0.18
+      }));
   }
 
   function maybeCreateMeteor() {

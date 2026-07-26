@@ -5,6 +5,11 @@ import configYaml from '../config.yaml';
 const GEMINI_MODEL = 'gemini-flash-lite-latest';
 const ADMIN_COOKIE = 'wish_admin_session';
 const ADMIN_SESSION_SECONDS = 24 * 60 * 60;
+const MAX_PLAN_LENGTH = 100_000;
+const WISH_FIELDS = 'id, title, category, categoryName, createdAt, blessings, aiPlan';
+const WISH_ID_PATTERN = /^wish_[a-zA-Z0-9_-]+$/;
+const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_NAMES.zh));
+const textEncoder = new TextEncoder();
 
 function readYamlString(source, key) {
   const match = source.match(new RegExp(`^${key}:\\s*(?:\"([^\"]*)\"|'([^']*)'|([^#\\r\\n]+))\\s*$`, 'm'));
@@ -24,6 +29,7 @@ const MESSAGES = {
     missingDraft: '缺少待保存的愿望数据。',
     emptyTitle: '愿望内容不能为空。',
     invalidPlan: '愿望行动方案无效。',
+    planTooLong: '愿望行动方案内容过长。',
     alreadySaved: '该愿望已经保存。',
     saveFailed: '保存愿望失败。',
     listFailed: '获取愿望列表失败，请重试。',
@@ -41,6 +47,7 @@ const MESSAGES = {
     missingDraft: 'Missing wish data.',
     emptyTitle: 'Wish content cannot be empty.',
     invalidPlan: 'The wish action plan is invalid.',
+    planTooLong: 'The wish action plan is too long.',
     alreadySaved: 'This wish has already been saved.',
     saveFailed: 'Could not save the wish.',
     listFailed: 'Could not load wishes.',
@@ -76,21 +83,33 @@ function constantTimeEqual(left, right) {
 }
 
 async function sha256(value) {
-  return bytesToHex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)));
+  return bytesToHex(await crypto.subtle.digest('SHA-256', textEncoder.encode(value)));
 }
 
-async function signAdminSession(expiresAt) {
-  const key = await crypto.subtle.importKey(
+let adminSigningKeyPromise;
+let adminPasswordHashPromise;
+
+function getAdminSigningKey() {
+  adminSigningKeyPromise ||= crypto.subtle.importKey(
     'raw',
-    new TextEncoder().encode(ADMIN_PASSWORD),
+    textEncoder.encode(ADMIN_PASSWORD),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
   );
+  return adminSigningKeyPromise;
+}
+
+function getAdminPasswordHash() {
+  adminPasswordHashPromise ||= sha256(ADMIN_PASSWORD);
+  return adminPasswordHashPromise;
+}
+
+async function signAdminSession(expiresAt) {
   const signature = await crypto.subtle.sign(
     'HMAC',
-    key,
-    new TextEncoder().encode(`admin:${expiresAt}`)
+    await getAdminSigningKey(),
+    textEncoder.encode(`admin:${expiresAt}`)
   );
   return `${expiresAt}.${bytesToHex(signature)}`;
 }
@@ -101,7 +120,7 @@ function getCookie(request, name) {
     const separator = cookie.indexOf('=');
     if (separator === -1) continue;
     if (cookie.slice(0, separator).trim() === name) {
-      return decodeURIComponent(cookie.slice(separator + 1).trim());
+      return cookie.slice(separator + 1).trim();
     }
   }
   return '';
@@ -114,12 +133,9 @@ async function isAdminAuthenticated(request) {
   if (separator === -1) return false;
 
   const expiresAt = Number(token.slice(0, separator));
-  const signature = token.slice(separator + 1);
   if (!Number.isInteger(expiresAt) || expiresAt <= Math.floor(Date.now() / 1000)) return false;
 
-  const expectedToken = await signAdminSession(expiresAt);
-  const expectedSignature = expectedToken.slice(expectedToken.indexOf('.') + 1);
-  return constantTimeEqual(signature, expectedSignature);
+  return constantTimeEqual(token, await signAdminSession(expiresAt));
 }
 
 function normalizeLanguage(lang) {
@@ -127,16 +143,36 @@ function normalizeLanguage(lang) {
 }
 
 function normalizeCategory(cat) {
-  return CATEGORY_NAMES.zh[cat] ? cat : 'growth';
+  return VALID_CATEGORIES.has(cat) ? cat : 'growth';
 }
 
 function getMsg(lang, key, arg) {
   const l = normalizeLanguage(lang);
-  const entry = MESSAGES[l][key] || MESSAGES.zh[key];
+  const entry = MESSAGES[l][key] ?? MESSAGES.zh[key];
   return typeof entry === 'function' ? entry(arg) : entry;
 }
 
+function createWishId() {
+  return `wish_${Date.now()}_${crypto.randomUUID().slice(0, 5)}`;
+}
 
+function serializePlan(plan) {
+  if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return null;
+  return JSON.stringify(plan);
+}
+
+function parseWishRow(row) {
+  if (!row) return null;
+  try {
+    return { ...row, aiPlan: JSON.parse(row.aiPlan || '{}') };
+  } catch {
+    return { ...row, aiPlan: {} };
+  }
+}
+
+function bindStatement(statement, params) {
+  return params.length ? statement.bind(...params) : statement;
+}
 
 async function generatePlan(wish, category, apiKey, language) {
   if (!apiKey) {
@@ -188,7 +224,7 @@ async function parseJsonBody(request) {
 async function createWishDraft(request) {
   const body = await parseJsonBody(request);
   const lang = normalizeLanguage(body?.language);
-  const wish = typeof body?.wish === 'string' ? body.wish.trim() : '';
+  const wish = typeof body?.wish === 'string' ? body.wish.trim().slice(0, 300) : '';
 
   if (!wish) {
     return json({ error: getMsg(lang, 'emptyWish') }, 400);
@@ -201,8 +237,8 @@ async function createWishDraft(request) {
     return json({
       success: true,
       wish: {
-        id: `wish_${Date.now()}_${crypto.randomUUID().slice(0, 5)}`,
-        title: wish.slice(0, 300),
+        id: createWishId(),
+        title: wish,
         category,
         categoryName: CATEGORY_NAMES[lang][category],
         createdAt: new Date().toISOString(),
@@ -230,16 +266,20 @@ async function saveWish(request, env) {
     return json({ error: getMsg(lang, 'emptyTitle') }, 400);
   }
 
-  if (!draft.aiPlan || typeof draft.aiPlan !== 'object' || Array.isArray(draft.aiPlan)) {
+  const serializedPlan = serializePlan(draft.aiPlan);
+  if (!serializedPlan) {
     return json({ error: getMsg(lang, 'invalidPlan') }, 400);
+  }
+  if (serializedPlan.length > MAX_PLAN_LENGTH) {
+    return json({ error: getMsg(lang, 'planTooLong') }, 400);
   }
 
   const category = normalizeCategory(draft.category);
   const parsedDate = Date.parse(draft.createdAt);
   const savedWish = {
-    id: typeof draft.id === 'string' && /^wish_[a-zA-Z0-9_-]+$/.test(draft.id)
+    id: typeof draft.id === 'string' && WISH_ID_PATTERN.test(draft.id)
       ? draft.id
-      : `wish_${Date.now()}_${crypto.randomUUID().slice(0, 5)}`,
+      : createWishId(),
     title,
     category,
     categoryName: CATEGORY_NAMES[lang][category],
@@ -259,7 +299,7 @@ async function saveWish(request, env) {
       savedWish.categoryName,
       savedWish.createdAt,
       savedWish.blessings,
-      JSON.stringify(savedWish.aiPlan)
+      serializedPlan
     ).run();
 
     return json({ success: true, wish: savedWish }, 201);
@@ -275,18 +315,17 @@ async function saveWish(request, env) {
 async function listWishes(url, env) {
   const category = url.searchParams.get('category');
   const search = url.searchParams.get('search')?.trim();
-  const rawPage = parseInt(url.searchParams.get('page'), 10);
-  const rawLimit = parseInt(url.searchParams.get('limit'), 10);
+  const rawPage = Number.parseInt(url.searchParams.get('page'), 10);
+  const rawLimit = Number.parseInt(url.searchParams.get('limit'), 10);
 
-  const isPaginated = !isNaN(rawPage) && rawPage > 0;
-  const limit = (!isNaN(rawLimit) && rawLimit > 0) ? Math.min(rawLimit, 100) : 6;
+  const isPaginated = Number.isInteger(rawPage) && rawPage > 0;
+  const limit = Number.isInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 100) : 6;
   const page = isPaginated ? rawPage : 1;
-  const offset = (page - 1) * limit;
 
   const conditions = [];
   const params = [];
 
-  if (category && category !== 'all' && CATEGORY_NAMES.zh[category]) {
+  if (category && category !== 'all' && VALID_CATEGORIES.has(category)) {
     conditions.push('category = ?');
     params.push(category);
   }
@@ -298,47 +337,32 @@ async function listWishes(url, env) {
 
   const where = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
   try {
+    let total;
+    let totalPages;
     if (isPaginated) {
-      const countStmt = env.DB.prepare(`SELECT COUNT(*) as total FROM wishes${where}`);
-      const countRes = params.length ? await countStmt.bind(...params).first() : await countStmt.first();
-      const total = countRes?.total || 0;
-      const totalPages = Math.max(1, Math.ceil(total / limit));
-
-      const queryStmt = env.DB.prepare(`
-        SELECT id, title, category, categoryName, createdAt, blessings, aiPlan
-        FROM wishes${where}
-        ORDER BY createdAt DESC
-        LIMIT ? OFFSET ?
-      `);
-      const queryParams = [...params, limit, offset];
-      const result = await queryStmt.bind(...queryParams).all();
-      const wishes = (result.results || []).map(row => ({
-        ...row,
-        aiPlan: JSON.parse(row.aiPlan || '{}')
-      }));
-
-      return json({
-        wishes,
-        total,
-        page,
-        limit,
-        totalPages
-      });
+      const count = await bindStatement(
+        env.DB.prepare(`SELECT COUNT(*) AS total FROM wishes${where}`),
+        params
+      ).first();
+      total = Number(count?.total) || 0;
+      totalPages = Math.max(1, Math.ceil(total / limit));
     }
 
-    const statement = env.DB.prepare(`
-      SELECT id, title, category, categoryName, createdAt, blessings, aiPlan
+    const pagination = isPaginated ? ' LIMIT ? OFFSET ?' : '';
+    const queryParams = isPaginated
+      ? [...params, limit, (page - 1) * limit]
+      : params;
+    const result = await bindStatement(env.DB.prepare(`
+      SELECT ${WISH_FIELDS}
       FROM wishes${where}
-      ORDER BY createdAt DESC
-    `);
-    const result = params.length
-      ? await statement.bind(...params).all()
-      : await statement.all();
-    const wishes = (result.results || []).map(row => ({
-      ...row,
-      aiPlan: JSON.parse(row.aiPlan || '{}')
-    }));
-    return json({ wishes });
+      ORDER BY createdAt DESC${pagination}
+    `), queryParams).all();
+    const response = { wishes: (result.results || []).map(parseWishRow) };
+
+    if (isPaginated) {
+      Object.assign(response, { total, page, limit, totalPages });
+    }
+    return json(response);
   } catch (error) {
     console.error('Wish list error:', error);
     return json({ error: getMsg('zh', 'listFailed') }, 500);
@@ -374,7 +398,7 @@ async function adminLogin(request) {
   const submittedPassword = typeof body?.password === 'string' ? body.password : '';
   const [submittedHash, expectedHash] = await Promise.all([
     sha256(submittedPassword),
-    sha256(ADMIN_PASSWORD)
+    getAdminPasswordHash()
   ]);
 
   if (!constantTimeEqual(submittedHash, expectedHash)) {
@@ -407,19 +431,17 @@ async function updateAdminWish(id, request, env) {
   const title = typeof body?.title === 'string' ? body.title.trim().slice(0, 300) : '';
   const category = typeof body?.category === 'string' ? body.category : '';
   const blessings = Number(body?.blessings);
-  const aiPlan = body?.aiPlan;
+  const serializedPlan = serializePlan(body?.aiPlan);
 
   if (!title) return json({ error: '愿望内容不能为空。' }, 400);
-  if (!CATEGORY_NAMES.zh[category]) return json({ error: '愿望分类无效。' }, 400);
+  if (!VALID_CATEGORIES.has(category)) return json({ error: '愿望分类无效。' }, 400);
   if (!Number.isInteger(blessings) || blessings < 0 || blessings > 999999999) {
     return json({ error: '助愿数量必须是大于或等于 0 的整数。' }, 400);
   }
-  if (!aiPlan || typeof aiPlan !== 'object' || Array.isArray(aiPlan)) {
+  if (!serializedPlan) {
     return json({ error: 'AI Plan 必须是有效的 JSON 对象。' }, 400);
   }
-
-  const serializedPlan = JSON.stringify(aiPlan);
-  if (serializedPlan.length > 100000) {
+  if (serializedPlan.length > MAX_PLAN_LENGTH) {
     return json({ error: 'AI Plan 内容过长。' }, 400);
   }
 
@@ -442,14 +464,14 @@ async function updateAdminWish(id, request, env) {
     }
 
     const row = await env.DB.prepare(`
-      SELECT id, title, category, categoryName, createdAt, blessings, aiPlan
+      SELECT ${WISH_FIELDS}
       FROM wishes
       WHERE id = ?
     `).bind(id).first();
 
     return json({
       success: true,
-      wish: { ...row, aiPlan: JSON.parse(row.aiPlan || '{}') }
+      wish: parseWishRow(row)
     });
   } catch (error) {
     console.error('Admin wish update error:', error);

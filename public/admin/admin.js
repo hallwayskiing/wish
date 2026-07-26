@@ -36,10 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function api(endpoint, options = {}) {
+    const { headers, ...fetchOptions } = options;
     const response = await fetch(`/api/admin${endpoint}`, {
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', ...options.headers },
-      ...options
+      ...fetchOptions,
+      headers: { 'Content-Type': 'application/json', ...headers }
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -82,6 +83,45 @@ document.addEventListener('DOMContentLoaded', () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  function createField(labelText, control, extraClass = '') {
+    const field = document.createElement('div');
+    field.className = `field${extraClass ? ` ${extraClass}` : ''}`;
+    const label = document.createElement('span');
+    label.className = 'field-label';
+    label.textContent = labelText;
+    field.append(label, control);
+    return field;
+  }
+
+  function createButton(className, text) {
+    const button = document.createElement('button');
+    button.className = className;
+    button.type = 'button';
+    button.textContent = text;
+    return button;
+  }
+
+  async function withBusyButton(button, busyText, task) {
+    const originalContent = button.innerHTML;
+    button.disabled = true;
+    button.textContent = busyText;
+    try {
+      return await task();
+    } finally {
+      button.disabled = false;
+      button.innerHTML = originalContent;
+    }
+  }
+
+  function handleRequestError(error) {
+    if (error.status === 401) {
+      showLogin('登录已过期，请重新登录。');
+      return true;
+    }
+    showNotice(error.message, true);
+    return false;
   }
 
   // --- Fill-In-The-Blank AI Plan Editor Builder ---
@@ -143,16 +183,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       stepCard.querySelector('.btn-remove-step').addEventListener('click', () => {
         stepCard.remove();
-        updateStepBadges(stepsList);
+        updateStepBadges();
       });
 
       return stepCard;
     }
 
-    function updateStepBadges(listEl) {
-      listEl.querySelectorAll('.roadmap-step-editor').forEach((card, idx) => {
-        const badge = card.querySelector('.step-num-badge');
-        if (badge) badge.textContent = `阶段 ${idx + 1}`;
+    function updateStepBadges() {
+      stepsList.querySelectorAll('.roadmap-step-editor').forEach((card, idx) => {
+        card.querySelector('.step-num-badge').textContent = `阶段 ${idx + 1}`;
       });
     }
 
@@ -173,75 +212,57 @@ document.addEventListener('DOMContentLoaded', () => {
     roadmapSection.append(roadmapTitle, stepsList, addStepBtn);
     container.appendChild(roadmapSection);
 
-    // 3. Habits & Tools Section
-    const habitsSection = document.createElement('div');
-    habitsSection.className = 'plan-form-section';
-    habitsSection.innerHTML = `
-      <label class="plan-section-title">
-        <span class="section-icon">✦</span> 关键微习惯与工具
-      </label>
-    `;
-
-    const habitsList = document.createElement('div');
-    habitsList.className = 'dynamic-items-list';
-
-    function createHabitRow(text = '') {
-      const row = document.createElement('div');
-      row.className = 'dynamic-item-row';
-      row.innerHTML = `
-        <input type="text" class="plan-form-input habit-item-input" placeholder="输入建议养成的微习惯或推荐工具..." value="${escapeHtml(text)}">
-        <button type="button" class="btn-remove-item" title="删除项">✕</button>
+    function createTextListSection({ title, values, inputClass, placeholder, addLabel }) {
+      const section = document.createElement('div');
+      section.className = 'plan-form-section';
+      section.innerHTML = `
+        <label class="plan-section-title">
+          <span class="section-icon">✦</span> ${title}
+        </label>
       `;
-      row.querySelector('.btn-remove-item').addEventListener('click', () => row.remove());
-      return row;
+
+      const list = document.createElement('div');
+      list.className = 'dynamic-items-list';
+
+      const createRow = (text = '') => {
+        const row = document.createElement('div');
+        row.className = 'dynamic-item-row';
+        row.innerHTML = `
+          <input type="text" class="plan-form-input ${inputClass}" placeholder="${placeholder}" value="${escapeHtml(text)}">
+          <button type="button" class="btn-remove-item" title="删除项">✕</button>
+        `;
+        row.querySelector('.btn-remove-item').addEventListener('click', () => row.remove());
+        return row;
+      };
+
+      (Array.isArray(values) ? values : []).forEach(value => list.appendChild(createRow(value)));
+
+      const addButton = document.createElement('button');
+      addButton.type = 'button';
+      addButton.className = 'btn-add-item';
+      addButton.textContent = `＋ ${addLabel}`;
+      addButton.addEventListener('click', () => list.appendChild(createRow()));
+
+      section.append(list, addButton);
+      return section;
     }
 
-    const initialHabits = Array.isArray(plan.habitsAndTools) ? plan.habitsAndTools : [];
-    initialHabits.forEach(h => habitsList.appendChild(createHabitRow(h)));
-
-    const addHabitBtn = document.createElement('button');
-    addHabitBtn.type = 'button';
-    addHabitBtn.className = 'btn-add-item';
-    addHabitBtn.innerHTML = `<span>+</span> 添加微习惯/工具`;
-    addHabitBtn.addEventListener('click', () => habitsList.appendChild(createHabitRow('')));
-
-    habitsSection.append(habitsList, addHabitBtn);
-    container.appendChild(habitsSection);
-
-    // 4. Pitfalls Section
-    const pitfallsSection = document.createElement('div');
-    pitfallsSection.className = 'plan-form-section';
-    pitfallsSection.innerHTML = `
-      <label class="plan-section-title">
-        <span class="section-icon">✦</span> 避坑指南与应对策略
-      </label>
-    `;
-
-    const pitfallsList = document.createElement('div');
-    pitfallsList.className = 'dynamic-items-list';
-
-    function createPitfallRow(text = '') {
-      const row = document.createElement('div');
-      row.className = 'dynamic-item-row';
-      row.innerHTML = `
-        <input type="text" class="plan-form-input pitfall-item-input" placeholder="输入可能遇到的坑及对应解决办法..." value="${escapeHtml(text)}">
-        <button type="button" class="btn-remove-item" title="删除项">✕</button>
-      `;
-      row.querySelector('.btn-remove-item').addEventListener('click', () => row.remove());
-      return row;
-    }
-
-    const initialPitfalls = Array.isArray(plan.pitfalls) ? plan.pitfalls : [];
-    initialPitfalls.forEach(p => pitfallsList.appendChild(createPitfallRow(p)));
-
-    const addPitfallBtn = document.createElement('button');
-    addPitfallBtn.type = 'button';
-    addPitfallBtn.className = 'btn-add-item';
-    addPitfallBtn.innerHTML = `<span>+</span> 添加避坑指南`;
-    addPitfallBtn.addEventListener('click', () => pitfallsList.appendChild(createPitfallRow('')));
-
-    pitfallsSection.append(pitfallsList, addPitfallBtn);
-    container.appendChild(pitfallsSection);
+    container.append(
+      createTextListSection({
+        title: '关键微习惯与工具',
+        values: plan.habitsAndTools,
+        inputClass: 'habit-item-input',
+        placeholder: '输入建议养成的微习惯或推荐工具...',
+        addLabel: '添加微习惯/工具'
+      }),
+      createTextListSection({
+        title: '避坑指南与应对策略',
+        values: plan.pitfalls,
+        inputClass: 'pitfall-item-input',
+        placeholder: '输入可能遇到的坑及对应解决办法...',
+        addLabel: '添加避坑指南'
+      })
+    );
 
     // 5. First Step Section
     const firstStepSection = document.createElement('div');
@@ -267,48 +288,40 @@ document.addEventListener('DOMContentLoaded', () => {
     jsonDebugToggle.append(debugSummary, jsonArea);
     container.appendChild(jsonDebugToggle);
 
-    // Dynamic AI Plan extraction method
-    container.getAiPlan = () => {
-      const inspiration = container.querySelector('.plan-inspiration-input')?.value.trim() || '';
-      const firstStep = container.querySelector('.plan-firststep-input')?.value.trim() || '';
+    function collectValues(selector) {
+      return [...container.querySelectorAll(selector)]
+        .map(input => input.value.trim())
+        .filter(Boolean);
+    }
+
+    function getAiPlan() {
+      const inspiration = container.querySelector('.plan-inspiration-input').value.trim();
+      const firstStep = container.querySelector('.plan-firststep-input').value.trim();
 
       const roadmap = [];
       container.querySelectorAll('.roadmap-step-editor').forEach(stepCard => {
-        const phase = stepCard.querySelector('.step-phase-input')?.value.trim() || '';
-        const timeline = stepCard.querySelector('.step-timeline-input')?.value.trim() || '';
-        const title = stepCard.querySelector('.step-title-input')?.value.trim() || '';
-        const action = stepCard.querySelector('.step-action-input')?.value.trim() || '';
+        const phase = stepCard.querySelector('.step-phase-input').value.trim();
+        const timeline = stepCard.querySelector('.step-timeline-input').value.trim();
+        const title = stepCard.querySelector('.step-title-input').value.trim();
+        const action = stepCard.querySelector('.step-action-input').value.trim();
         if (phase || timeline || title || action) {
           roadmap.push({ phase, timeline, title, action });
         }
       });
 
-      const habitsAndTools = [];
-      container.querySelectorAll('.habit-item-input').forEach(input => {
-        const val = input.value.trim();
-        if (val) habitsAndTools.push(val);
-      });
-
-      const pitfalls = [];
-      container.querySelectorAll('.pitfall-item-input').forEach(input => {
-        const val = input.value.trim();
-        if (val) pitfalls.push(val);
-      });
-
       const updatedPlan = {
         inspiration,
         roadmap,
-        habitsAndTools,
-        pitfalls,
+        habitsAndTools: collectValues('.habit-item-input'),
+        pitfalls: collectValues('.pitfall-item-input'),
         firstStep
       };
 
-      // Keep jsonArea updated
       jsonArea.value = JSON.stringify(updatedPlan, null, 2);
       return updatedPlan;
-    };
+    }
 
-    return container;
+    return { element: container, getAiPlan };
   }
 
   function createWishCard(wish) {
@@ -316,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
     card.className = 'wish-admin-card glass-panel';
     card.dataset.id = wish.id;
 
-    // Header Metadata
     const meta = document.createElement('div');
     meta.className = 'wish-meta';
     const dateText = document.createElement('span');
@@ -326,24 +338,12 @@ document.addEventListener('DOMContentLoaded', () => {
     idText.textContent = wish.id;
     meta.append(dateText, idText);
 
-    // Title field
-    const titleField = document.createElement('div');
-    titleField.className = 'field wish-title-field';
-    const titleLabel = document.createElement('span');
-    titleLabel.className = 'field-label';
-    titleLabel.textContent = '愿望内容';
     const titleInput = document.createElement('textarea');
     titleInput.className = 'wish-title-input';
     titleInput.maxLength = 300;
     titleInput.value = wish.title || '';
-    titleField.append(titleLabel, titleInput);
+    const titleField = createField('愿望内容', titleInput, 'wish-title-field');
 
-    // Category field
-    const categoryField = document.createElement('div');
-    categoryField.className = 'field';
-    const categoryLabel = document.createElement('span');
-    categoryLabel.className = 'field-label';
-    categoryLabel.textContent = '分类领域';
     const categorySelect = document.createElement('select');
     categorySelect.className = 'wish-category-select';
     Object.entries(categoryNames).forEach(([value, label]) => {
@@ -353,14 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
       option.selected = value === wish.category;
       categorySelect.appendChild(option);
     });
-    categoryField.append(categoryLabel, categorySelect);
+    const categoryField = createField('分类领域', categorySelect);
 
-    // Blessings field
-    const blessingsField = document.createElement('div');
-    blessingsField.className = 'field';
-    const blessingsLabel = document.createElement('span');
-    blessingsLabel.className = 'field-label';
-    blessingsLabel.textContent = '助愿能量数';
     const blessingsInput = document.createElement('input');
     blessingsInput.className = 'wish-blessings-input';
     blessingsInput.type = 'number';
@@ -368,22 +362,14 @@ document.addEventListener('DOMContentLoaded', () => {
     blessingsInput.max = '999999999';
     blessingsInput.step = '1';
     blessingsInput.value = String(wish.blessings ?? 0);
-    blessingsField.append(blessingsLabel, blessingsInput);
+    const blessingsField = createField('助愿能量数', blessingsInput);
 
-    // Action buttons
     const actions = document.createElement('div');
     actions.className = 'card-actions';
-    const saveButton = document.createElement('button');
-    saveButton.className = 'save-button';
-    saveButton.type = 'button';
-    saveButton.textContent = '保存变更';
-    const deleteButton = document.createElement('button');
-    deleteButton.className = 'delete-button';
-    deleteButton.type = 'button';
-    deleteButton.textContent = '删除愿望';
+    const saveButton = createButton('save-button', '保存变更');
+    const deleteButton = createButton('delete-button', '删除愿望');
     actions.append(saveButton, deleteButton);
 
-    // AI Plan Collapsible Editor Container
     const planEditor = document.createElement('details');
     planEditor.className = 'plan-editor';
     const planSummary = document.createElement('summary');
@@ -394,52 +380,44 @@ document.addEventListener('DOMContentLoaded', () => {
       <span class="summary-indicator">▶</span>
     `;
 
-    const planFormContainer = buildPlanForm(wish.aiPlan);
-    planEditor.append(planSummary, planFormContainer);
+    const planForm = buildPlanForm(wish.aiPlan);
+    planEditor.append(planSummary, planForm.element);
 
     saveButton.addEventListener('click', async () => {
-      const aiPlan = planFormContainer.getAiPlan();
-
-      saveButton.disabled = true;
-      saveButton.textContent = '保存中...';
+      const aiPlan = planForm.getAiPlan();
       try {
-        const data = await api(`/wishes/${encodeURIComponent(wish.id)}`, {
-          method: 'PUT',
-          body: JSON.stringify({
-            title: titleInput.value,
-            category: categorySelect.value,
-            blessings: Number(blessingsInput.value),
-            aiPlan
-          })
+        await withBusyButton(saveButton, '保存中...', async () => {
+          const data = await api(`/wishes/${encodeURIComponent(wish.id)}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              title: titleInput.value,
+              category: categorySelect.value,
+              blessings: Number(blessingsInput.value),
+              aiPlan
+            })
+          });
+          const index = wishes.findIndex(item => item.id === wish.id);
+          if (index !== -1) wishes[index] = data.wish;
+          titleInput.value = data.wish.title;
+          blessingsInput.value = String(data.wish.blessings);
         });
-        const index = wishes.findIndex(item => item.id === wish.id);
-        if (index !== -1) wishes[index] = data.wish;
-        titleInput.value = data.wish.title;
-        blessingsInput.value = String(data.wish.blessings);
         showNotice('愿望及 AI 蓝图填空已成功保存！');
       } catch (error) {
-        if (error.status === 401) return showLogin('登录已过期，请重新登录。');
-        showNotice(error.message, true);
-      } finally {
-        saveButton.disabled = false;
-        saveButton.textContent = '保存变更';
+        handleRequestError(error);
       }
     });
 
     deleteButton.addEventListener('click', async () => {
       if (!window.confirm(`确认永久删除这条愿望？\n\n“${titleInput.value}”`)) return;
-      deleteButton.disabled = true;
-      deleteButton.textContent = '删除中...';
       try {
-        await api(`/wishes/${encodeURIComponent(wish.id)}`, { method: 'DELETE' });
+        await withBusyButton(deleteButton, '删除中...', () =>
+          api(`/wishes/${encodeURIComponent(wish.id)}`, { method: 'DELETE' })
+        );
         wishes = wishes.filter(item => item.id !== wish.id);
         renderWishes();
         showNotice('愿望已删除。');
       } catch (error) {
-        if (error.status === 401) return showLogin('登录已过期，请重新登录。');
-        showNotice(error.message, true);
-        deleteButton.disabled = false;
-        deleteButton.textContent = '删除愿望';
+        handleRequestError(error);
       }
     });
 
@@ -469,8 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
       wishes = data.wishes || [];
       renderWishes();
     } catch (error) {
-      if (error.status === 401) return showLogin('登录已过期，请重新登录。');
-      showNotice(error.message, true);
+      if (handleRequestError(error)) return;
       wishCount.textContent = '读取失败';
     } finally {
       refreshButton.disabled = false;
@@ -479,23 +456,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loginForm.addEventListener('submit', async event => {
     event.preventDefault();
-    loginButton.disabled = true;
-    loginButton.textContent = '验证中...';
     loginMessage.textContent = '';
     try {
-      await api('/login', {
-        method: 'POST',
-        body: JSON.stringify({ password: passwordInput.value })
-      });
+      await withBusyButton(loginButton, '验证中...', () =>
+        api('/login', {
+          method: 'POST',
+          body: JSON.stringify({ password: passwordInput.value })
+        })
+      );
       passwordInput.value = '';
       showDashboard();
       await loadWishes();
     } catch (error) {
       loginMessage.textContent = error.message;
       passwordInput.select();
-    } finally {
-      loginButton.disabled = false;
-      loginButton.textContent = '验证并登录';
     }
   });
 

@@ -226,19 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Helper functions for i18n
-  const t = key => translations[currentLanguage][key] || key;
+  const t = key => translations[currentLanguage][key] ?? key;
   const getWishExample = () => t('placeholders')[currentCategory];
   const getWishPlaceholder = () => `${getWishExample()}...`;
 
-  function getRoadmapPhaseLabel(index) {
-    return currentLanguage === 'en' ? `Phase ${index + 1}` : `阶段 ${index + 1}`;
-  }
-
   function getRoadmapPhaseHeading(step, index) {
-    const label = getRoadmapPhaseLabel(index);
+    const label = currentLanguage === 'en' ? `Phase ${index + 1}` : `阶段 ${index + 1}`;
     const phaseName = typeof step.phase === 'string' ? step.phase.trim() : '';
-    if (!phaseName) return label;
-    return `${label} · ${phaseName}`;
+    return phaseName ? `${label} · ${phaseName}` : label;
   }
 
   // --- Apply Language Updates to DOM ---
@@ -266,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     wishInput.placeholder = getWishPlaceholder();
 
     if (currentWishData && planModal.classList.contains('show')) {
-      renderPlanModal(currentWishData, isDraftModal);
+      renderPlanModal(currentWishData);
     }
     if (refreshWall) {
       renderWishGrid(currentWishesList);
@@ -313,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function scrollToSection(section) {
-    const headerHeight = appHeader?.getBoundingClientRect().height || 0;
+    const headerHeight = appHeader.getBoundingClientRect().height;
     const sectionTop = section.getBoundingClientRect().top + window.scrollY;
     window.scrollTo({
       top: Math.max(0, sectionTop - headerHeight),
@@ -339,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
   categoryPills.addEventListener('click', (e) => {
     const pill = e.target.closest('.cat-pill');
     if (!pill) return;
-    categoryPills.querySelectorAll('.cat-pill').forEach(btn => btn.classList.remove('active'));
+    categoryPills.querySelector('.cat-pill.active')?.classList.remove('active');
     pill.classList.add('active');
     currentCategory = pill.dataset.cat;
     wishInput.placeholder = getWishPlaceholder();
@@ -370,25 +365,24 @@ document.addEventListener('DOMContentLoaded', () => {
   closeApiKeyModalBtn.addEventListener('click', () => hideModal(apiKeyModal));
   bindModalBackdrop(apiKeyModal, () => hideModal(apiKeyModal));
 
-  saveApiKeyBtn.addEventListener('click', () => {
-    const val = apiKeyInput.value.trim();
-    customApiKey = val;
-    if (val) {
-      localStorage.setItem('gemini_api_key', val);
-      showToast(t('apiKeySaved'));
+  function saveApiKey(value) {
+    customApiKey = value;
+    if (value) {
+      localStorage.setItem('gemini_api_key', value);
     } else {
       localStorage.removeItem('gemini_api_key');
-      showToast(t('apiKeyCleared'));
     }
+    showToast(t(value ? 'apiKeySaved' : 'apiKeyCleared'));
     hideModal(apiKeyModal);
+  }
+
+  saveApiKeyBtn.addEventListener('click', () => {
+    saveApiKey(apiKeyInput.value.trim());
   });
 
   clearApiKeyBtn.addEventListener('click', () => {
     apiKeyInput.value = '';
-    customApiKey = '';
-    localStorage.removeItem('gemini_api_key');
-    showToast(t('apiKeyCleared'));
-    hideModal(apiKeyModal);
+    saveApiKey('');
   });
 
   // --- Submit Wish ---
@@ -399,7 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await window.WishAPI.submitWish(wishText, currentCategory, customApiKey, currentLanguage);
       finishLoadingAnimation(() => {
-        currentWishData = res.wish;
         openPlanModal(res.wish, true);
         wishInput.value = '';
         charCount.textContent = '0/300';
@@ -412,7 +405,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Loading Animation Controller ---
   let progressInterval = null;
+
+  function clearLoadingInterval() {
+    clearInterval(progressInterval);
+    progressInterval = null;
+  }
+
   function startLoadingAnimation() {
+    clearLoadingInterval();
+    submitWishBtn.disabled = true;
     const statusPhrases = t('loadingPhrases');
     showModal(loadingOverlay);
     progressFill.style.width = '5%';
@@ -435,25 +436,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function finishLoadingAnimation(callback) {
-    clearInterval(progressInterval);
+    clearLoadingInterval();
     progressFill.style.width = '100%';
     loadingStatusText.textContent = t('generationComplete');
     setTimeout(() => {
       hideModal(loadingOverlay);
-      if (callback) callback();
+      submitWishBtn.disabled = false;
+      callback();
     }, 450);
   }
 
   function stopLoadingAnimation() {
-    clearInterval(progressInterval);
+    clearLoadingInterval();
     hideModal(loadingOverlay);
+    submitWishBtn.disabled = false;
   }
 
   // --- Plan Modal Render & Controls ---
-  function renderPlanModal(wishObj, isDraft = false) {
+  function renderTextList(container, items) {
+    const elements = (Array.isArray(items) ? items : []).map(text => {
+      const item = document.createElement('li');
+      item.textContent = text;
+      return item;
+    });
+    container.replaceChildren(...elements);
+  }
+
+  function renderPlanModal(wishObj) {
     const plan = wishObj.aiPlan || {};
-    isDraftModal = isDraft;
-    planModalFooter.classList.toggle('hidden', !isDraft);
+    planModalFooter.classList.toggle('hidden', !isDraftModal);
 
     modalCategoryBadge.textContent = t('categoryNames')[wishObj.category] || t('beautifulWish');
     modalWishTitle.textContent = `“${wishObj.title}”`;
@@ -464,67 +475,42 @@ document.addEventListener('DOMContentLoaded', () => {
     modalWishTime.textContent = `${t('wishTime')}: ${formattedDate}`;
     planInspiration.textContent = `“${plan.inspiration || t('inspirationFallback')}”`;
 
-    // Render Roadmap Timeline
-    planRoadmap.innerHTML = '';
-    if (Array.isArray(plan.roadmap)) {
-      plan.roadmap.forEach((step, index) => {
-        const stepEl = document.createElement('div');
-        stepEl.className = 'roadmap-step-card';
-        stepEl.innerHTML = `
-          <div class="step-header">
-            <span class="step-phase">${escapeHtml(getRoadmapPhaseHeading(step, index))}</span>
-            <span class="step-timeline">⏱️ ${escapeHtml(step.timeline || t('timelineFallback'))}</span>
-          </div>
-          <div class="step-title">${escapeHtml(step.title || t('taskFallback'))}</div>
-          <div class="step-action">${escapeHtml(step.action || '')}</div>
-        `;
-        planRoadmap.appendChild(stepEl);
-      });
-    }
+    const roadmap = (Array.isArray(plan.roadmap) ? plan.roadmap : []).map((step, index) => {
+      const element = document.createElement('div');
+      element.className = 'roadmap-step-card';
+      element.innerHTML = `
+        <div class="step-header">
+          <span class="step-phase">${escapeHtml(getRoadmapPhaseHeading(step, index))}</span>
+          <span class="step-timeline">⏱️ ${escapeHtml(step.timeline || t('timelineFallback'))}</span>
+        </div>
+        <div class="step-title">${escapeHtml(step.title || t('taskFallback'))}</div>
+        <div class="step-action">${escapeHtml(step.action || '')}</div>
+      `;
+      return element;
+    });
+    planRoadmap.replaceChildren(...roadmap);
 
-    // Render Habits & Tools
-    planHabits.innerHTML = '';
-    if (Array.isArray(plan.habitsAndTools)) {
-      plan.habitsAndTools.forEach(h => {
-        const li = document.createElement('li');
-        li.textContent = h;
-        planHabits.appendChild(li);
-      });
-    }
-
-    // Render Pitfalls
-    planPitfalls.innerHTML = '';
-    if (Array.isArray(plan.pitfalls)) {
-      plan.pitfalls.forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = p;
-        planPitfalls.appendChild(li);
-      });
-    }
+    renderTextList(planHabits, plan.habitsAndTools);
+    renderTextList(planPitfalls, plan.pitfalls);
 
     // Render First Step
     planFirstStep.textContent = plan.firstStep || t('firstStepFallback');
   }
 
   function openPlanModal(wishObj, isDraft = false) {
-    renderPlanModal(wishObj, isDraft);
+    currentWishData = wishObj;
+    isDraftModal = isDraft;
+    renderPlanModal(wishObj);
     showModal(planModal);
-
-    // Reset scroll positions AFTER modal display is flex
     planModal.scrollTop = 0;
     modalWishContent.scrollTop = 0;
-
-    requestAnimationFrame(() => {
-      planModal.scrollTop = 0;
-      modalWishContent.scrollTop = 0;
-    });
   }
 
   function closePlanModal() {
     hideModal(planModal);
     planModal.scrollTop = 0;
     modalWishContent.scrollTop = 0;
-    if (isDraftModal) currentWishData = null;
+    currentWishData = null;
     isDraftModal = false;
   }
 
@@ -540,9 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await window.WishAPI.saveWish(currentWishData, currentLanguage);
       showToast(t('wishSaved'));
-      hideModal(planModal);
-      currentWishData = null;
-      isDraftModal = false;
+      closePlanModal();
       currentPage = 1;
       await loadWishWall();
     } catch (err) {
@@ -557,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wallFilterPills.addEventListener('click', (e) => {
     const pill = e.target.closest('.filter-pill');
     if (!pill) return;
-    wallFilterPills.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+    wallFilterPills.querySelector('.filter-pill.active')?.classList.remove('active');
     pill.classList.add('active');
     activeFilter = pill.dataset.filter;
     currentPage = 1;
@@ -584,82 +568,59 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPagination(currentPage, totalPages);
     } catch (err) {
       console.error('Failed to load wish wall:', err);
-      wishGrid.innerHTML = `
-        <div class="empty-wall">
-          <div class="empty-icon">🪐</div>
-          <p>${escapeHtml(t('wallLoadError'))}</p>
-        </div>
-      `;
-      if (wallPagination) wallPagination.innerHTML = '';
+      renderWallMessage('🪐', t('wallLoadError'));
+      wallPagination.replaceChildren();
     }
   }
 
-  function renderPagination(page, total) {
-    if (!wallPagination) return;
-    wallPagination.innerHTML = '';
-    if (total <= 1) return;
-
-    // Prev Button
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'page-btn prev-btn';
-    prevBtn.disabled = page <= 1;
-    prevBtn.textContent = t('prevPage');
-    prevBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        loadWishWall();
-        scrollToWallTop();
-      }
-    });
-    wallPagination.appendChild(prevBtn);
-
-    // Numbered Page Buttons
-    for (let i = 1; i <= total; i++) {
-      const pageBtn = document.createElement('button');
-      pageBtn.className = `page-btn ${i === page ? 'active' : ''}`;
-      pageBtn.textContent = i;
-      pageBtn.addEventListener('click', () => {
-        if (currentPage !== i) {
-          currentPage = i;
-          loadWishWall();
-          scrollToWallTop();
-        }
-      });
-      wallPagination.appendChild(pageBtn);
-    }
-
-    // Next Button
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'page-btn next-btn';
-    nextBtn.disabled = page >= total;
-    nextBtn.textContent = t('nextPage');
-    nextBtn.addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        loadWishWall();
-        scrollToWallTop();
-      }
-    });
-    wallPagination.appendChild(nextBtn);
-  }
-
-  function scrollToWallTop() {
+  function goToPage(page) {
+    if (page === currentPage || page < 1 || page > totalPages) return;
+    currentPage = page;
+    loadWishWall();
     scrollToSection(wishWallSection);
   }
 
-  function renderWishGrid(wishes) {
-    wishGrid.innerHTML = '';
-    if (!wishes || wishes.length === 0) {
-      wishGrid.innerHTML = `
-        <div class="empty-wall glass-panel">
-          <div class="empty-icon">🌟</div>
-          <p>${escapeHtml(t('wallEmpty'))}</p>
-        </div>
-      `;
+  function createPageButton(label, targetPage, { active = false, disabled = false } = {}) {
+    const button = document.createElement('button');
+    button.className = `page-btn${active ? ' active' : ''}`;
+    button.textContent = label;
+    button.disabled = disabled;
+    button.addEventListener('click', () => goToPage(targetPage));
+    return button;
+  }
+
+  function renderPagination(page, total) {
+    if (total <= 1) {
+      wallPagination.replaceChildren();
       return;
     }
 
-    wishes.forEach(wish => {
+    const buttons = [
+      createPageButton(t('prevPage'), page - 1, { disabled: page <= 1 })
+    ];
+    for (let index = 1; index <= total; index += 1) {
+      buttons.push(createPageButton(String(index), index, { active: index === page }));
+    }
+    buttons.push(createPageButton(t('nextPage'), page + 1, { disabled: page >= total }));
+    wallPagination.replaceChildren(...buttons);
+  }
+
+  function renderWallMessage(icon, message, withPanel = false) {
+    wishGrid.innerHTML = `
+      <div class="empty-wall${withPanel ? ' glass-panel' : ''}">
+        <div class="empty-icon">${icon}</div>
+        <p>${escapeHtml(message)}</p>
+      </div>
+    `;
+  }
+
+  function renderWishGrid(wishes) {
+    if (wishes.length === 0) {
+      renderWallMessage('🌟', t('wallEmpty'), true);
+      return;
+    }
+
+    const cards = wishes.map(wish => {
       const card = document.createElement('div');
       card.className = 'wish-card glass-panel';
 
@@ -685,61 +646,59 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="card-bottom">
-          <button class="btn-bless" data-wish-id="${wish.id}">
+          <button class="btn-bless" data-wish-id="${escapeHtml(wish.id)}">
             <span class="bless-label">${escapeHtml(t('bless'))}</span>
             <span class="bless-count">${wish.blessings || 0}</span>
           </button>
-          <button class="btn-view-plan" data-wish-id="${wish.id}">${escapeHtml(t('viewPlan'))}</button>
+          <button class="btn-view-plan" data-wish-id="${escapeHtml(wish.id)}">${escapeHtml(t('viewPlan'))}</button>
         </div>
       `;
-
-      // Bless Button Click Handler (Locks width, shows spinning '↻' symbol without number)
-      const blessBtn = card.querySelector('.btn-bless');
-      const blessLabel = blessBtn.querySelector('.bless-label');
-      blessBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (blessBtn.disabled || blessBtn.classList.contains('loading')) return;
-
-        const originalText = blessLabel.textContent;
-        const currentWidth = blessBtn.offsetWidth;
-        blessBtn.style.minWidth = `${currentWidth}px`;
-
-        blessLabel.textContent = '↻';
-        blessBtn.disabled = true;
-        blessBtn.classList.add('loading');
-
-        try {
-          const res = await window.WishAPI.blessWish(wish.id);
-          blessBtn.querySelector('.bless-count').textContent = res.blessings;
-          blessBtn.classList.add('blessed');
-          showToast(t('blessSuccess'));
-        } catch (err) {
-          showToast(t('blessError'));
-        } finally {
-          blessLabel.textContent = originalText;
-          blessBtn.classList.remove('loading');
-          blessBtn.disabled = false;
-          blessBtn.style.minWidth = '';
-        }
-      });
-
-      // View Plan Handler
-      const viewBtn = card.querySelector('.btn-view-plan');
-      viewBtn.addEventListener('click', () => {
-        currentWishData = wish;
-        openPlanModal(wish, false);
-      });
-
-      wishGrid.appendChild(card);
+      return card;
     });
+    wishGrid.replaceChildren(...cards);
   }
+
+  wishGrid.addEventListener('click', async event => {
+    const button = event.target.closest('button[data-wish-id]');
+    if (!button) return;
+    const wish = currentWishesList.find(item => item.id === button.dataset.wishId);
+    if (!wish) return;
+
+    if (button.classList.contains('btn-view-plan')) {
+      openPlanModal(wish);
+      return;
+    }
+    if (button.disabled) return;
+
+    const label = button.querySelector('.bless-label');
+    const originalText = label.textContent;
+    button.style.minWidth = `${button.offsetWidth}px`;
+    label.textContent = '↻';
+    button.disabled = true;
+    button.classList.add('loading');
+
+    try {
+      const res = await window.WishAPI.blessWish(wish.id);
+      wish.blessings = res.blessings;
+      button.querySelector('.bless-count').textContent = res.blessings;
+      button.classList.add('blessed');
+      showToast(t('blessSuccess'));
+    } catch {
+      showToast(t('blessError'));
+    } finally {
+      label.textContent = originalText;
+      button.classList.remove('loading');
+      button.disabled = false;
+      button.style.minWidth = '';
+    }
+  });
 
   // --- Toast Utilities ---
   function showToast(msg) {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = msg;
+    toast.textContent = msg;
     container.appendChild(toast);
 
     setTimeout(() => {

@@ -38,15 +38,6 @@
   white-space: nowrap;
 }
 
-.hero-title .gradient-text {
-  color: var(--accent) !important;
-  -webkit-text-fill-color: var(--accent) !important;
-  background: none !important;
-  display: inline !important;
-  forced-color-adjust: none !important;
-  filter: none !important;
-}
-
 .hero-subtitle {
   font-size: 1rem;
   color: var(--text-secondary);

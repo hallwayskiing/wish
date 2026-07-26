@@ -9,7 +9,6 @@
   --bg-primary: #0a0a0b;
   --bg-elevated: #131315;
   --bg-surface: rgba(19, 19, 21, 0.72);
-  --bg-surface-hover: rgba(26, 26, 30, 0.85);
 
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-medium: rgba(255, 255, 255, 0.10);
@@ -26,11 +25,9 @@
   --font-sans: 'Plus Jakarta Sans', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
   --radius-xs: 6px;
   --radius-sm: 10px;
-  --radius-md: 14px;
   --radius-lg: 20px;
   --radius-pill: 9999px;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.5);
 
@@ -38,7 +35,6 @@
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --duration-fast: 0.15s;
   --duration-normal: 0.25s;
-  --duration-slow: 0.4s;
 }
 
 /* Reset */
@@ -135,15 +131,6 @@ body {
   letter-spacing: -0.02em;
 }
 
-.logo-text small {
-  display: block;
-  font-size: 0.65rem;
-  font-weight: 400;
-  color: var(--text-tertiary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .nav-links {
   display: flex;
   align-items: center;
@@ -198,14 +185,8 @@ body {
   color: var(--text-primary);
 }
 
-/* Accent Text — single warm color, no gradient */
 .gradient-text {
-  color: var(--accent) !important;
-  -webkit-text-fill-color: var(--accent) !important;
-  background: none !important;
-  display: inline !important;
-  forced-color-adjust: none !important;
-  filter: none !important;
+  color: var(--accent);
 }
 
 /* Buttons */
@@ -234,15 +215,6 @@ body {
 
 .btn-primary:active {
   transform: translateY(0);
-}
-
-.glow-btn {
-  box-shadow: none;
-}
-
-.glow-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(207, 176, 126, 0.2);
 }
 
 .btn-secondary {

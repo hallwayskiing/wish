@@ -5,9 +5,10 @@
 const API_BASE = window.API_BASE || '/api';
 
 async function apiFetch(endpoint, options = {}) {
+  const { headers, ...fetchOptions } = options;
   const res = await fetch(`${API_BASE}${endpoint}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options
+    ...fetchOptions,
+    headers: { 'Content-Type': 'application/json', ...headers }
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -31,14 +32,13 @@ const WishAPI = {
     return data.wish;
   },
 
-  getWishes: async (category = 'all', search = '', page = 1, limit = 6) => {
+  getWishes: (category = 'all', search = '', page = 1, limit = 6) => {
     const params = new URLSearchParams();
-    if (category && category !== 'all') params.set('category', category);
+    if (category !== 'all') params.set('category', category);
     if (search) params.set('search', search);
-    if (page) params.set('page', page);
-    if (limit) params.set('limit', limit);
-    const query = params.toString();
-    return await apiFetch(`/wishes${query ? `?${query}` : ''}`);
+    params.set('page', page);
+    params.set('limit', limit);
+    return apiFetch(`/wishes?${params}`);
   },
 
   blessWish: (id) =>

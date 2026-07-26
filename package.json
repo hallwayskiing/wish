@@ -1,0 +1,17 @@
+{
+  "name": "wish-realizer",
+  "version": "1.0.0",
+  "description": "A cosmic wishing well powered by Gemini and deployed by Cloudflare.",
+  "main": "src/worker.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "check": "node --check src/worker.js && node --check public/js/app.js && node --check public/js/api.js && node --check public/admin/admin.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.68.0"
+  }
+}

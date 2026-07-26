@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>愿望管理台 — 璀璨许愿阁</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css?v=2.4.1">
+  <link rel="stylesheet" href="/admin/admin.css?v=2.4.1">
+</head>
+<body>
+  <!-- Canvas for interactive cosmic particles -->
+  <canvas id="particleCanvas"></canvas>
+
+  <main class="admin-shell">
+    <!-- Login Panel -->
+    <section class="login-panel glass-panel" id="loginPanel">
+      <div class="brand-mark">✦</div>
+      <p class="eyebrow">WISH FOREST ADMIN</p>
+      <h1 class="admin-title">愿望管理台</h1>
+      <p class="muted">请输入管理员密码以继续管理愿望蓝图</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="passwordInput">管理密码</label>
+          <input
+            id="passwordInput"
+            type="password"
+            autocomplete="current-password"
+            required
+            autofocus
+            placeholder="输入管理员密码"
+          >
+        </div>
+        <button class="btn-primary login-btn" id="loginButton" type="submit">
+          <span class="btn-stars">✦</span>
+          <span class="btn-text">验证并登录</span>
+        </button>
+        <p class="form-message" id="loginMessage" role="alert"></p>
+      </form>
+      <a class="back-link" href="/">← 返回璀璨许愿阁</a>
+    </section>
+
+    <!-- Dashboard -->
+    <section class="dashboard hidden" id="dashboard">
+      <header class="dashboard-header glass-panel">
+        <div class="header-brand">
+          <div class="brand-badge">
+            <span class="logo-icon">✦</span>
+            <span class="eyebrow-text">WISH FOREST ADMIN</span>
+          </div>
+          <h1 class="dashboard-title">愿望管理台</h1>
+          <p class="muted-count" id="wishCount">正在读取愿望...</p>
+        </div>
+        <div class="header-actions">
+          <a class="btn-secondary nav-link-btn" href="/" target="_blank">
+            <span>查看前台</span> ↗
+          </a>
+          <button class="btn-secondary logout-btn" id="logoutButton" type="button">
+            退出登录
+          </button>
+        </div>
+      </header>
+
+      <div class="toolbar glass-panel">
+        <div class="search-field">
+          <span class="search-label">搜索愿望</span>
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input id="searchInput" type="search" placeholder="输入愿望内容或分类关键字...">
+          </div>
+        </div>
+        <button class="btn-secondary refresh-btn" id="refreshButton" type="button">
+          <span class="refresh-icon">🔄</span> 刷新列表
+        </button>
+      </div>
+
+      <div class="notice" id="notice" role="status"></div>
+      <div class="wish-list" id="wishList"></div>
+      <div class="empty-state glass-panel hidden" id="emptyState">没有找到符合条件的愿望。</div>
+    </section>
+  </main>
+
+  <script src="/js/particles.js?v=2.4.1" defer></script>
+  <script src="/admin/admin.js?v=2.4.1" defer></script>
+</body>
+</html>

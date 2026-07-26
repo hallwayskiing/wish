@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>璀璨许愿阁</title>
+  <meta name="description" id="pageDescription" content="许下你的心愿，生成具象的行动蓝图。">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=2.4.2">
+  <link rel="stylesheet" href="css/wish.css?v=2.4.1">
+  <link rel="stylesheet" href="css/wall.css?v=2.4.1">
+</head>
+<body>
+  <!-- Canvas for interactive cosmic particles -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- Navigation Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo">
+        <span class="logo-icon">✦</span>
+        <span class="logo-text"><span data-i18n="brand"></span></span>
+      </div>
+      <nav class="nav-links">
+        <a href="#wish-hero" class="nav-item" id="nav-wish" data-i18n="navWish"></a>
+        <a href="#wish-wall" class="nav-item" id="nav-wall" data-i18n="navWall"></a>
+        <button class="api-key-btn" id="openApiKeyModalBtn" data-i18n-title="apiConfigTitle">
+          <span class="key-icon">⚙️</span> Google API
+        </button>
+        <button class="api-key-btn language-toggle-btn" id="languageToggleBtn" type="button">EN</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Hero / Wish Input Section -->
+    <section class="wish-hero" id="wish-hero">
+      <div class="hero-content">
+        <div class="hero-badge" data-i18n="heroBadge"></div>
+        <h1 class="hero-title"><span data-i18n="heroTitle"></span><span class="gradient-text" data-i18n="heroTitleAccent"></span></h1>
+        <p class="hero-subtitle" data-i18n="heroSubtitle"></p>
+
+        <!-- Wish Form -->
+        <div class="wish-card-form glass-panel">
+          <div class="category-selector">
+            <label class="section-label" data-i18n="categoryLabel"></label>
+            <div class="category-pills" id="categoryPills">
+              <button type="button" class="cat-pill active" data-cat="growth" data-i18n="catGrowth"></button>
+              <button type="button" class="cat-pill" data-cat="career" data-i18n="catCareer"></button>
+              <button type="button" class="cat-pill" data-cat="study" data-i18n="catStudy"></button>
+              <button type="button" class="cat-pill" data-cat="love" data-i18n="catLove"></button>
+              <button type="button" class="cat-pill" data-cat="health" data-i18n="catHealth"></button>
+              <button type="button" class="cat-pill" data-cat="creative" data-i18n="catCreative"></button>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <textarea id="wishInput" rows="3" maxlength="300"></textarea>
+            <div class="input-footer">
+              <span class="char-count" id="charCount">0/300</span>
+            </div>
+          </div>
+
+          <button id="submitWishBtn" class="btn-primary glow-btn">
+            <span class="btn-stars">✦</span>
+            <span class="btn-text" data-i18n="submitWish"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wish Wall / Gallery Section -->
+    <section class="wish-wall-section" id="wish-wall">
+      <div class="section-header">
+        <h2 class="section-main-title" data-i18n="wallTitle"></h2>
+        <p class="section-sub-title" data-i18n="wallSubtitle"></p>
+      </div>
+
+      <!-- Filters and Search -->
+      <div class="wall-controls glass-panel">
+        <div class="filter-pills" id="wallFilterPills">
+          <button class="filter-pill active" data-filter="all" data-i18n="filterAll"></button>
+          <button class="filter-pill" data-filter="growth" data-i18n="catGrowth"></button>
+          <button class="filter-pill" data-filter="career" data-i18n="catCareer"></button>
+          <button class="filter-pill" data-filter="study" data-i18n="catStudy"></button>
+          <button class="filter-pill" data-filter="love" data-i18n="catLove"></button>
+          <button class="filter-pill" data-filter="health" data-i18n="catHealth"></button>
+          <button class="filter-pill" data-filter="creative" data-i18n="catCreative"></button>
+        </div>
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder">
+        </div>
+      </div>
+
+      <!-- Wish Grid Container -->
+      <div class="wish-grid" id="wishGrid"></div>
+
+      <!-- Wish Wall Pagination -->
+      <div class="wall-pagination" id="wallPagination"></div>
+    </section>
+  </main>
+
+  <!-- Synchronous AI Loading Overlay -->
+  <div class="ai-loading-overlay" id="loadingOverlay">
+    <div class="loading-box glass-panel">
+      <div class="cosmic-spinner">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+        <div class="core-star">✦</div>
+      </div>
+      <h3 class="loading-title" data-i18n="loadingTitle"></h3>
+      <p class="loading-status" id="loadingStatusText"></p>
+      <div class="loading-progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Plan Result Modal -->
+  <div class="modal-backdrop" id="planModal">
+    <div class="modal-dialog glass-panel large-modal">
+      <button class="close-modal-btn" id="closePlanModalBtn" data-i18n-aria-label="close" data-i18n-title="closeModal">&times;</button>
+      
+      <div class="modal-header">
+        <div class="modal-badge" id="modalCategoryBadge"></div>
+        <h2 class="modal-wish-title" id="modalWishTitle"></h2>
+        <div class="modal-meta">
+          <span class="meta-time" id="modalWishTime"></span>
+        </div>
+      </div>
+
+      <div class="modal-body" id="modalWishContent">
+        <!-- Inspiration Banner -->
+        <div class="inspiration-card">
+          <div class="card-icon">✦</div>
+          <div class="card-content">
+            <h4 data-i18n="inspirationTitle"></h4>
+            <p id="planInspiration"></p>
+          </div>
+        </div>
+
+        <!-- Action Roadmap Section -->
+        <div class="plan-section">
+          <h3 class="section-title" data-i18n="roadmapTitle"></h3>
+          <div class="roadmap-timeline" id="planRoadmap"></div>
+        </div>
+
+        <!-- Split Two Column Grid for Habits & Pitfalls -->
+        <div class="plan-grid-2">
+          <div class="plan-box box-habits">
+            <h4 data-i18n="habitsTitle"></h4>
+            <ul id="planHabits"></ul>
+          </div>
+          <div class="plan-box box-pitfalls">
+            <h4 data-i18n="pitfallsTitle"></h4>
+            <ul id="planPitfalls"></ul>
+          </div>
+        </div>
+
+        <!-- First Step Callout -->
+        <div class="first-step-box">
+          <div class="step-badge" data-i18n="firstStepTitle"></div>
+          <div class="step-text" id="planFirstStep"></div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" id="planModalFooter">
+        <button class="btn-secondary" id="closeDraftBtn" data-i18n="close"></button>
+        <button class="btn-primary" id="saveWishBtn" data-i18n="save"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key Config Modal -->
+  <div class="modal-backdrop" id="apiKeyModal">
+    <div class="modal-dialog glass-panel small-modal">
+      <button class="close-modal-btn" id="closeApiKeyModalBtn" data-i18n-aria-label="close" data-i18n-title="closeModal">&times;</button>
+      <div class="modal-header">
+        <h3 data-i18n="apiModalTitle"></h3>
+      </div>
+      <div class="modal-body">
+        <p class="api-modal-tip" data-i18n="apiModalTip"></p>
+        <div class="form-group">
+          <label for="apiKeyInput" data-i18n="apiKeyLabel"></label>
+          <input type="password" id="apiKeyInput" placeholder="AIzaSy..." autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="clearApiKeyBtn" data-i18n="clearApiKey"></button>
+        <button class="btn-primary" id="saveApiKeyBtn" data-i18n="saveConfig"></button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p data-i18n="footerBrand"></p>
+      <p class="footer-sub" data-i18n="footerQuote"></p>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- JavaScript Scripts -->
+  <script src="js/particles.js?v=2.4.1"></script>
+  <script src="js/api.js?v=2.4.1"></script>
+  <script src="js/app.js?v=2.4.2"></script>
+</body>
+</html>

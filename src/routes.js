@@ -2,6 +2,7 @@ import { adminLogin, adminLogout, isAdminAuthenticated } from './admin-auth.js';
 import { deleteAdminWish, updateAdminWish } from './admin-wishes.js';
 import { json } from './http.js';
 import { siteQrCode } from './qr.js';
+import { serverMessage } from './server-messages.js';
 import { blessWish, createWishDraft, listWishes, saveWish } from './wishes.js';
 
 const ADMIN_WISH_ROUTE = /^\/api\/admin\/wishes\/([^/]+)$/;
@@ -25,7 +26,7 @@ async function handleAdminRequest(request, env, url) {
     return null;
   }
   if (!await isAdminAuthenticated(request, env)) {
-    return json({ error: '请先登录管理后台。' }, 401);
+    return json({ error: serverMessage('zh', 'adminLoginRequired') }, 401);
   }
   if (request.method === 'POST' && url.pathname === '/api/admin/logout') {
     return adminLogout();
@@ -44,7 +45,7 @@ async function handleAdminRequest(request, env, url) {
   if (wishId && request.method === 'DELETE') {
     return deleteAdminWish(wishId, env);
   }
-  return json({ error: '请求路径不存在。' }, 404);
+  return json({ error: serverMessage('zh', 'routeNotFound') }, 404);
 }
 
 export async function handleApiRequest(request, env, url = new URL(request.url)) {
@@ -70,5 +71,5 @@ export async function handleApiRequest(request, env, url = new URL(request.url))
   if (wishId && request.method === 'POST') {
     return blessWish(wishId, env);
   }
-  return json({ error: '请求路径不存在。' }, 404);
+  return json({ error: serverMessage('zh', 'routeNotFound') }, 404);
 }

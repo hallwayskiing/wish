@@ -1,5 +1,7 @@
 import { escapeHtml } from '../ui.js';
 
+const PHASE_LABEL = '阶段';
+
 export function buildPlanForm(aiPlan) {
   const plan = aiPlan || {};
   const container = document.createElement('div');
@@ -33,7 +35,7 @@ export function buildPlanForm(aiPlan) {
 
     stepCard.innerHTML = `
       <div class="roadmap-step-header">
-        <span class="step-num-badge">阶段 ${index + 1}</span>
+        <span class="step-num-badge">${PHASE_LABEL} ${index + 1}</span>
         <button type="button" class="btn-remove-step">✕ 删除阶段</button>
       </div>
       <div class="step-grid-2">
@@ -66,7 +68,7 @@ export function buildPlanForm(aiPlan) {
 
   function updateStepBadges() {
     stepsList.querySelectorAll('.roadmap-step-editor').forEach((card, idx) => {
-      card.querySelector('.step-num-badge').textContent = `阶段 ${idx + 1}`;
+      card.querySelector('.step-num-badge').textContent = `${PHASE_LABEL} ${idx + 1}`;
     });
   }
 

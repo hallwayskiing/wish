@@ -1,25 +1,4 @@
-/* ==========================================================================
-   AI Prompt & Category Constants Module - 璀璨许愿阁
-   ========================================================================== */
-
-export const CATEGORY_NAMES = {
-  zh: {
-    career: '事业突破',
-    study: '学业成名',
-    love: '情感真挚',
-    health: '健康生活',
-    growth: '个人成长',
-    creative: '奇思妙想'
-  },
-  en: {
-    career: 'Career',
-    study: 'Learning',
-    love: 'Relationships',
-    health: 'Health',
-    growth: 'Growth',
-    creative: 'Creativity'
-  }
-};
+import { CATEGORY_NAMES } from './categories.js';
 
 export function buildPrompt(wish, category, language) {
   if (language === 'en') {

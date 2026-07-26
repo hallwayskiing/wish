@@ -1,7 +1,7 @@
-import { CATEGORY_NAMES } from './prompt.js';
+import { CATEGORY_IDS } from './categories.js';
 
 export const WISH_FIELDS = 'id, title, category, categoryName, createdAt, blessings, aiPlan';
-export const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_NAMES.zh));
+export const VALID_CATEGORIES = new Set(CATEGORY_IDS);
 
 export function serializePlan(plan) {
   if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return null;

@@ -2,9 +2,12 @@ import '../particles.js';
 import '../styles/style.css';
 import './admin.css';
 import './editor.css';
+import { CATEGORY_NAMES } from '../../categories.js';
 import { adminApi as api } from './api.js';
 import { buildPlanForm } from './plan-editor.js';
 import { escapeHtml } from '../ui.js';
+
+const LOADING_WISHES_TEXT = '正在读取愿望...';
 
 document.addEventListener('DOMContentLoaded', () => {
   const loginPanel = document.getElementById('loginPanel');
@@ -21,14 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const notice = document.getElementById('notice');
   const emptyState = document.getElementById('emptyState');
 
-  const categoryNames = {
-    growth: '个人成长',
-    career: '事业突破',
-    study: '学业成名',
-    love: '情感真挚',
-    health: '健康生活',
-    creative: '奇思妙想'
-  };
+  const categoryNames = CATEGORY_NAMES.zh;
 
   let wishes = [];
   let noticeTimer = null;
@@ -223,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadWishes() {
     refreshButton.disabled = true;
-    wishCount.textContent = '正在读取愿望...';
+    wishCount.textContent = LOADING_WISHES_TEXT;
     try {
       const data = await api('/wishes');
       wishes = data.wishes || [];

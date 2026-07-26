@@ -1,26 +1,7 @@
 import { buildPrompt } from './prompt.js';
+import { serverMessage } from './server-messages.js';
 
 const GEMINI_MODEL = 'gemini-flash-lite-latest';
-
-const MODEL_MESSAGES = {
-  zh: {
-    noApiKey: '未配置 API Key，请打开【Google API】并填写 Gemini API Key。',
-    requestFailed: message => `大模型调用失败：${message}`,
-    emptyResponse: '大模型返回了空内容。',
-    invalidJson: '大模型返回的 JSON 格式无效，请重试。'
-  },
-  en: {
-    noApiKey: 'No API key configured. Open Google API and enter your Gemini API key.',
-    requestFailed: message => `Model request failed: ${message}`,
-    emptyResponse: 'The model returned an empty response.',
-    invalidJson: 'The model returned invalid JSON. Please try again.'
-  }
-};
-
-function message(language, key, detail) {
-  const value = MODEL_MESSAGES[language === 'en' ? 'en' : 'zh'][key];
-  return typeof value === 'function' ? value(detail) : value;
-}
 
 function extractText(payload) {
   return payload?.candidates?.[0]?.content?.parts
@@ -33,7 +14,7 @@ function extractText(payload) {
 
 export async function generatePlan({ wish, category, apiKey, language }) {
   if (!apiKey) {
-    throw new Error(message(language, 'noApiKey'));
+    throw new Error(serverMessage(language, 'noApiKey'));
   }
 
   const endpoint = new URL(
@@ -52,21 +33,21 @@ export async function generatePlan({ wish, category, apiKey, language }) {
   const payload = await response.json();
 
   if (!response.ok) {
-    throw new Error(message(
+    throw new Error(serverMessage(
       language,
-      'requestFailed',
+      'modelRequestFailed',
       payload?.error?.message || `HTTP ${response.status}`
     ));
   }
 
   const responseText = extractText(payload);
   if (!responseText) {
-    throw new Error(message(language, 'emptyResponse'));
+    throw new Error(serverMessage(language, 'emptyModelResponse'));
   }
 
   try {
     return JSON.parse(responseText);
   } catch {
-    throw new Error(message(language, 'invalidJson'));
+    throw new Error(serverMessage(language, 'invalidModelJson'));
   }
 }

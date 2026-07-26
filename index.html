@@ -27,7 +27,13 @@
         <button class="api-key-btn" id="openApiKeyModalBtn" data-i18n-title="apiConfigTitle">
           <span class="key-icon">⚙️</span> Google API
         </button>
-        <button class="api-key-btn language-toggle-btn" id="languageToggleBtn" type="button">EN</button>
+        <button
+          class="api-key-btn language-toggle-btn"
+          id="languageToggleBtn"
+          type="button"
+          data-i18n="languageToggleLabel"
+          data-i18n-title="languageToggleTitle"
+        ></button>
       </nav>
     </div>
   </header>
@@ -45,12 +51,12 @@
           <div class="category-selector">
             <label class="section-label" data-i18n="categoryLabel"></label>
             <div class="category-pills" id="categoryPills">
-              <button type="button" class="cat-pill active" data-cat="growth" data-i18n="catGrowth"></button>
-              <button type="button" class="cat-pill" data-cat="career" data-i18n="catCareer"></button>
-              <button type="button" class="cat-pill" data-cat="study" data-i18n="catStudy"></button>
-              <button type="button" class="cat-pill" data-cat="love" data-i18n="catLove"></button>
-              <button type="button" class="cat-pill" data-cat="health" data-i18n="catHealth"></button>
-              <button type="button" class="cat-pill" data-cat="creative" data-i18n="catCreative"></button>
+              <button type="button" class="cat-pill active" data-cat="growth" data-category-label="growth"></button>
+              <button type="button" class="cat-pill" data-cat="career" data-category-label="career"></button>
+              <button type="button" class="cat-pill" data-cat="study" data-category-label="study"></button>
+              <button type="button" class="cat-pill" data-cat="love" data-category-label="love"></button>
+              <button type="button" class="cat-pill" data-cat="health" data-category-label="health"></button>
+              <button type="button" class="cat-pill" data-cat="creative" data-category-label="creative"></button>
             </div>
           </div>
 
@@ -80,12 +86,12 @@
       <div class="wall-controls glass-panel">
         <div class="filter-pills" id="wallFilterPills">
           <button class="filter-pill active" data-filter="all" data-i18n="filterAll"></button>
-          <button class="filter-pill" data-filter="growth" data-i18n="catGrowth"></button>
-          <button class="filter-pill" data-filter="career" data-i18n="catCareer"></button>
-          <button class="filter-pill" data-filter="study" data-i18n="catStudy"></button>
-          <button class="filter-pill" data-filter="love" data-i18n="catLove"></button>
-          <button class="filter-pill" data-filter="health" data-i18n="catHealth"></button>
-          <button class="filter-pill" data-filter="creative" data-i18n="catCreative"></button>
+          <button class="filter-pill" data-filter="growth" data-category-label="growth"></button>
+          <button class="filter-pill" data-filter="career" data-category-label="career"></button>
+          <button class="filter-pill" data-filter="study" data-category-label="study"></button>
+          <button class="filter-pill" data-filter="love" data-category-label="love"></button>
+          <button class="filter-pill" data-filter="health" data-category-label="health"></button>
+          <button class="filter-pill" data-filter="creative" data-category-label="creative"></button>
         </div>
         <div class="wall-actions">
           <div class="search-box">
@@ -203,7 +209,7 @@
     <div class="modal-dialog glass-panel small-modal">
       <button class="close-modal-btn" id="closeApiKeyModalBtn" data-i18n-aria-label="close" data-i18n-title="closeModal">&times;</button>
       <div class="modal-header">
-        <h3 data-i18n="apiModalTitle"></h3>
+        <h3><span aria-hidden="true">⚙️</span> <span data-i18n="apiConfigTitle"></span></h3>
       </div>
       <div class="modal-body">
         <p class="api-modal-tip" data-i18n="apiModalTip"></p>
@@ -221,7 +227,7 @@
 
   <footer class="app-footer">
     <div class="footer-container">
-      <p data-i18n="footerBrand"></p>
+      <p><span aria-hidden="true">✦</span> <span data-i18n="brand"></span></p>
       <p class="footer-sub" data-i18n="footerQuote"></p>
     </div>
   </footer>

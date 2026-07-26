@@ -3,15 +3,12 @@ import './styles/style.css';
 import './styles/wish.css';
 import './styles/modal.css';
 import './styles/wall.css';
+import { getCategoryLabel } from '../categories.js';
 import { WishAPI } from './api.js';
 import { createPlanModal } from './plan-modal.js';
 import { translations } from './translations.js';
 import { bindModalBackdrop, hideModal, showModal, showToast } from './ui.js';
 import { createWishWall } from './wish-wall.js';
-
-/* ==========================================================================
-   Main Application UI Script - 璀璨许愿阁 (Bilingual Cosmic Wish Realizer)
-   ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
   // --- DOM Elements ---
@@ -76,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyLanguage(refreshWall = false) {
     const isEn = currentLanguage === 'en';
     document.documentElement.lang = isEn ? 'en' : 'zh-CN';
-    document.title = t('pageTitle');
+    document.title = t('brand');
     document.getElementById('pageDescription').content = t('pageDescription');
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -94,9 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-i18n-alt]').forEach(el => {
       el.alt = t(el.dataset.i18nAlt);
     });
+    document.querySelectorAll('[data-category-label]').forEach(el => {
+      el.textContent = getCategoryLabel(el.dataset.categoryLabel, currentLanguage);
+    });
 
-    languageToggleBtn.textContent = isEn ? '中文' : 'EN';
-    languageToggleBtn.title = isEn ? '切换到中文' : 'Switch to English';
     wishInput.placeholder = getWishPlaceholder();
 
     plan.rerender();

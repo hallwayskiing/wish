@@ -1,6 +1,7 @@
+import { CATEGORY_NAMES } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { generatePlan } from './model.js';
-import { CATEGORY_NAMES } from './prompt.js';
+import { serverMessage } from './server-messages.js';
 import {
   bindStatement,
   parseWishRow,
@@ -12,45 +13,12 @@ import {
 const MAX_PLAN_LENGTH = 100_000;
 const WISH_ID_PATTERN = /^wish_[a-zA-Z0-9_-]+$/;
 
-const MESSAGES = {
-  zh: {
-    emptyWish: '请填写您的愿望！',
-    genFailed: '愿望生成失败。',
-    missingDraft: '缺少待保存的愿望数据。',
-    emptyTitle: '愿望内容不能为空。',
-    invalidPlan: '愿望行动方案无效。',
-    planTooLong: '愿望行动方案内容过长。',
-    alreadySaved: '该愿望已经保存。',
-    saveFailed: '保存愿望失败。',
-    listFailed: '获取愿望列表失败，请重试。',
-    notFound: '未找到该愿望。',
-    blessFailed: '助愿失败，请重试。'
-  },
-  en: {
-    emptyWish: 'Please enter a wish.',
-    genFailed: 'Wish generation failed.',
-    missingDraft: 'Missing wish data.',
-    emptyTitle: 'Wish content cannot be empty.',
-    invalidPlan: 'The wish action plan is invalid.',
-    planTooLong: 'The wish action plan is too long.',
-    alreadySaved: 'This wish has already been saved.',
-    saveFailed: 'Could not save the wish.',
-    listFailed: 'Could not load wishes.',
-    notFound: 'Wish not found.',
-    blessFailed: 'Could not send encouragement.'
-  }
-};
-
 function normalizeLanguage(language) {
   return language === 'en' ? 'en' : 'zh';
 }
 
 function normalizeCategory(category) {
   return VALID_CATEGORIES.has(category) ? category : 'growth';
-}
-
-function message(language, key) {
-  return MESSAGES[normalizeLanguage(language)][key];
 }
 
 function createWishId() {
@@ -63,7 +31,7 @@ export async function createWishDraft(request) {
   const title = typeof body?.wish === 'string' ? body.wish.trim().slice(0, 300) : '';
 
   if (!title) {
-    return json({ error: message(language, 'emptyWish') }, 400);
+    return json({ error: serverMessage(language, 'emptyWish') }, 400);
   }
 
   const category = normalizeCategory(body?.category);
@@ -89,7 +57,7 @@ export async function createWishDraft(request) {
     });
   } catch (error) {
     console.error('Wish generation error:', error);
-    return json({ error: error.message || message(language, 'genFailed') }, 500);
+    return json({ error: error.message || serverMessage(language, 'generationFailed') }, 500);
   }
 }
 
@@ -99,20 +67,20 @@ export async function saveWish(request, env) {
   const draft = body?.wish;
 
   if (!draft || typeof draft !== 'object') {
-    return json({ error: message(language, 'missingDraft') }, 400);
+    return json({ error: serverMessage(language, 'missingDraft') }, 400);
   }
 
   const title = typeof draft.title === 'string' ? draft.title.trim().slice(0, 300) : '';
   if (!title) {
-    return json({ error: message(language, 'emptyTitle') }, 400);
+    return json({ error: serverMessage(language, 'emptyTitle') }, 400);
   }
 
   const serializedPlan = serializePlan(draft.aiPlan);
   if (!serializedPlan) {
-    return json({ error: message(language, 'invalidPlan') }, 400);
+    return json({ error: serverMessage(language, 'invalidPlan') }, 400);
   }
   if (serializedPlan.length > MAX_PLAN_LENGTH) {
-    return json({ error: message(language, 'planTooLong') }, 400);
+    return json({ error: serverMessage(language, 'planTooLong') }, 400);
   }
 
   const category = normalizeCategory(draft.category);
@@ -147,9 +115,9 @@ export async function saveWish(request, env) {
   } catch (error) {
     console.error('Wish save error:', error);
     if (/unique|constraint/i.test(error.message || '')) {
-      return json({ error: message(language, 'alreadySaved') }, 409);
+      return json({ error: serverMessage(language, 'alreadySaved') }, 409);
     }
-    return json({ error: message(language, 'saveFailed') }, 500);
+    return json({ error: serverMessage(language, 'saveFailed') }, 500);
   }
 }
 
@@ -206,7 +174,7 @@ export async function listWishes(url, env) {
     return json(response);
   } catch (error) {
     console.error('Wish list error:', error);
-    return json({ error: message('zh', 'listFailed') }, 500);
+    return json({ error: serverMessage('zh', 'listFailed') }, 500);
   }
 }
 
@@ -217,7 +185,7 @@ export async function blessWish(id, env) {
     ).bind(id).run();
 
     if (!update.meta?.changes) {
-      return json({ error: message('zh', 'notFound') }, 404);
+      return json({ error: serverMessage('zh', 'notFound') }, 404);
     }
 
     const row = await env.DB.prepare(
@@ -226,6 +194,6 @@ export async function blessWish(id, env) {
     return json({ success: true, blessings: row.blessings });
   } catch (error) {
     console.error('Wish blessing error:', error);
-    return json({ error: message('zh', 'blessFailed') }, 500);
+    return json({ error: serverMessage('zh', 'blessFailed') }, 500);
   }
 }

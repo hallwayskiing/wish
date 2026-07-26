@@ -18,7 +18,7 @@ export function createPlanModal({ api, getLanguage, onSaved, showToast, t }) {
   let isDraft = false;
 
   function phaseHeading(step, index) {
-    const label = getLanguage() === 'en' ? `Phase ${index + 1}` : `阶段 ${index + 1}`;
+    const label = `${t('phaseLabel')} ${index + 1}`;
     const phaseName = typeof step.phase === 'string' ? step.phase.trim() : '';
     return phaseName ? `${label} · ${phaseName}` : label;
   }

@@ -200,7 +200,7 @@ export async function createWishPoster(wish, { language, t }) {
 
   context.fillStyle = POSTER_THEME.accent;
   context.font = `600 22px ${fontFamily}`;
-  context.fillText(t('posterInspirationLabel'), 162, 857);
+  context.fillText(t('inspirationTitle'), 162, 857);
   context.fillStyle = POSTER_THEME.text;
   context.font = `400 29px ${fontFamily}`;
   drawPosterLines(

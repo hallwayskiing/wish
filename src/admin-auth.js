@@ -1,4 +1,5 @@
 import { json, parseJsonBody } from './http.js';
+import { serverMessage } from './server-messages.js';
 
 const ADMIN_COOKIE = 'wish_admin_session';
 const SESSION_SECONDS = 24 * 60 * 60;
@@ -65,7 +66,7 @@ export async function isAdminAuthenticated(request, env) {
 
 export async function adminLogin(request, env) {
   const password = env.ADMIN_PASSWORD;
-  if (!password) return json({ error: '管理员密码尚未配置。' }, 503);
+  if (!password) return json({ error: serverMessage('zh', 'adminPasswordMissing') }, 503);
 
   const body = await parseJsonBody(request);
   const submittedPassword = typeof body?.password === 'string' ? body.password : '';
@@ -74,7 +75,7 @@ export async function adminLogin(request, env) {
     sha256(password)
   ]);
   if (!constantTimeEqual(submittedHash, expectedHash)) {
-    return json({ error: '密码错误。' }, 401);
+    return json({ error: serverMessage('zh', 'invalidPassword') }, 401);
   }
 
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_SECONDS;

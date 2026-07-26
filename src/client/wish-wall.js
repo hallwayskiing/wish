@@ -67,7 +67,7 @@ export function createWishWall({
           </div>
           <h3 class="card-wish-text">“${escapeHtml(wish.title)}”</h3>
           <div class="card-ai-preview">
-            <div class="preview-label">${escapeHtml(t('inspirationLabel'))}</div>
+            <div class="preview-label"><span aria-hidden="true">✨</span> ${escapeHtml(t('inspirationTitle'))}</div>
             <div class="preview-text">${escapeHtml(inspiration)}</div>
           </div>
         </div>

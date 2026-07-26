@@ -1,7 +1,3 @@
-/* ==========================================================================
-   Wishing Well API Client Module - 璀璨许愿阁
-   ========================================================================== */
-
 const API_BASE = window.API_BASE || '/api';
 
 async function apiFetch(endpoint, options = {}) {

@@ -89,6 +89,7 @@ export const translations = {
     posterWishLabel: '我的心愿',
     posterInspirationLabel: '星芒启示',
     posterBlessingsLabel: '助愿能量',
+    posterDateLabel: '许愿日期',
     posterScanLabel: '扫码进入许愿阁',
     prevPage: '‹ 上一页',
     nextPage: '下一页 ›'
@@ -183,6 +184,7 @@ export const translations = {
     posterWishLabel: 'My Wish',
     posterInspirationLabel: 'Starlight Insight',
     posterBlessingsLabel: 'Encouragement',
+    posterDateLabel: 'Wish Date',
     posterScanLabel: 'Scan to make a wish',
     prevPage: '‹ Prev',
     nextPage: 'Next ›'

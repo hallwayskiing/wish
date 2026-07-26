@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=2.5.0">
-  <link rel="stylesheet" href="css/wish.css?v=2.5.0">
-  <link rel="stylesheet" href="css/wall.css?v=2.5.0">
+  <link rel="stylesheet" href="css/wish.css?v=2.6.1">
+  <link rel="stylesheet" href="css/wall.css?v=2.6.8">
 </head>
 <body>
   <!-- Canvas for interactive cosmic particles -->
@@ -90,9 +90,15 @@
           <button class="filter-pill" data-filter="health" data-i18n="catHealth"></button>
           <button class="filter-pill" data-filter="creative" data-i18n="catCreative"></button>
         </div>
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder">
+        <div class="wall-actions">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder">
+          </div>
+          <button class="wall-refresh-btn" id="refreshWallBtn" type="button" data-i18n-title="refreshWallTitle">
+            <span class="refresh-icon" aria-hidden="true">↻</span>
+            <span data-i18n="refreshWall"></span>
+          </button>
         </div>
       </div>
 
@@ -177,6 +183,24 @@
     </div>
   </div>
 
+  <!-- Share Poster Preview Modal -->
+  <div class="modal-backdrop" id="posterModal">
+    <div class="modal-dialog glass-panel poster-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="posterModalTitle">
+      <button class="close-modal-btn" id="closePosterModalBtn" data-i18n-aria-label="close" data-i18n-title="closeModal">&times;</button>
+      <div class="poster-modal-header">
+        <h2 id="posterModalTitle" data-i18n="posterPreviewTitle"></h2>
+        <p data-i18n="posterPreviewHint"></p>
+      </div>
+      <div class="poster-preview-body">
+        <img id="posterPreviewImage" data-i18n-alt="posterPreviewAlt">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelPosterBtn" type="button" data-i18n="close"></button>
+        <button class="btn-primary" id="downloadPosterBtn" type="button" data-i18n="downloadPoster"></button>
+      </div>
+    </div>
+  </div>
+
   <!-- API Key Config Modal -->
   <div class="modal-backdrop" id="apiKeyModal">
     <div class="modal-dialog glass-panel small-modal">
@@ -211,6 +235,6 @@
   <!-- JavaScript Scripts -->
   <script src="js/particles.js?v=2.5.0"></script>
   <script src="js/api.js?v=2.5.0"></script>
-  <script src="js/app.js?v=2.5.0"></script>
+  <script src="js/app.js?v=2.7.0"></script>
 </body>
 </html>

@@ -35,8 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
   const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
 
+  const posterModal = document.getElementById('posterModal');
+  const closePosterModalBtn = document.getElementById('closePosterModalBtn');
+  const cancelPosterBtn = document.getElementById('cancelPosterBtn');
+  const downloadPosterBtn = document.getElementById('downloadPosterBtn');
+  const posterPreviewImage = document.getElementById('posterPreviewImage');
+
   const wallFilterPills = document.getElementById('wallFilterPills');
   const searchInput = document.getElementById('searchInput');
+  const refreshWallBtn = document.getElementById('refreshWallBtn');
   const wishGrid = document.getElementById('wishGrid');
   const wallPagination = document.getElementById('wallPagination');
   const languageToggleBtn = document.getElementById('languageToggleBtn');
@@ -51,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentWishData = null;
   let currentWishesList = [];
   let isDraftModal = false;
+  let posterObjectUrl = '';
+  let posterFilename = '';
   let customApiKey = localStorage.getItem('gemini_api_key') || '';
   let currentLanguage = localStorage.getItem('wish_language') === 'en' ? 'en' : 'zh';
 
@@ -84,6 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
       wallTitle: '🌌 愿望森林 · 众星祈愿',
       wallSubtitle: '汲取他人的心愿灵感，为真挚的祈愿送出助愿祝福',
       searchPlaceholder: '搜索愿望关键词...',
+      refreshWall: '刷新',
+      refreshWallTitle: '刷新当前愿望列表',
       loadingTitle: '群星推演中...',
       close: '关闭',
       closeModal: '关闭弹窗',
@@ -136,9 +147,20 @@ document.addEventListener('DOMContentLoaded', () => {
       wishFallback: '心愿',
       inspirationLabel: '✨ 星愿启示：',
       bless: '✨ 助愿',
+      sharePoster: '分享',
       viewPlan: '查看蓝图 →',
       blessSuccess: '✨ 助愿成功！送出一份诚挚祝福',
       blessError: '⚠️ 助愿失败',
+      posterError: '海报生成失败，请重试',
+      posterPreviewTitle: '分享愿望海报',
+      posterPreviewHint: '长按图片保存，或点击下载图片',
+      posterPreviewAlt: '愿望分享海报预览',
+      downloadPoster: '下载图片',
+      posterDownloaded: '海报已下载',
+      posterWishLabel: '我的心愿',
+      posterInspirationLabel: '星芒启示',
+      posterBlessingsLabel: '助愿能量',
+      posterScanLabel: '扫码进入许愿阁',
       prevPage: '‹ 上一页',
       nextPage: '下一页 ›'
     },
@@ -165,6 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
       wallTitle: '🌌 Wish Forest · Shared Dreams',
       wallSubtitle: 'Find inspiration in others and send encouragement to sincere wishes',
       searchPlaceholder: 'Search wishes...',
+      refreshWall: 'Refresh',
+      refreshWallTitle: 'Refresh the current wish list',
       loadingTitle: 'Mapping Your Wish...',
       close: 'Close',
       closeModal: 'Close dialog',
@@ -217,9 +241,20 @@ document.addEventListener('DOMContentLoaded', () => {
       wishFallback: 'Wish',
       inspirationLabel: '✨ Starlight Insight:',
       bless: '✨ Encourage',
+      sharePoster: 'Share',
       viewPlan: 'View Plan →',
       blessSuccess: '✨ Encouragement sent!',
       blessError: '⚠️ Could not send encouragement',
+      posterError: 'Could not create the poster. Please try again.',
+      posterPreviewTitle: 'Share Wish Poster',
+      posterPreviewHint: 'Save the preview or download the image',
+      posterPreviewAlt: 'Wish poster preview',
+      downloadPoster: 'Download Image',
+      posterDownloaded: 'Poster downloaded',
+      posterWishLabel: 'My Wish',
+      posterInspirationLabel: 'Starlight Insight',
+      posterBlessingsLabel: 'Encouragement',
+      posterScanLabel: 'Scan to make a wish',
       prevPage: '‹ Prev',
       nextPage: 'Next ›'
     }
@@ -254,6 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
       el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
+    });
+    document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+      el.alt = t(el.dataset.i18nAlt);
     });
 
     languageToggleBtn.textContent = isEn ? '中文' : 'EN';
@@ -364,6 +402,36 @@ document.addEventListener('DOMContentLoaded', () => {
   openApiKeyModalBtn.addEventListener('click', () => showModal(apiKeyModal));
   closeApiKeyModalBtn.addEventListener('click', () => hideModal(apiKeyModal));
   bindModalBackdrop(apiKeyModal, () => hideModal(apiKeyModal));
+
+  function closePosterModal() {
+    hideModal(posterModal);
+    posterPreviewImage.removeAttribute('src');
+    if (posterObjectUrl) URL.revokeObjectURL(posterObjectUrl);
+    posterObjectUrl = '';
+    posterFilename = '';
+  }
+
+  function openPosterModal(blob, filename) {
+    closePosterModal();
+    posterObjectUrl = URL.createObjectURL(blob);
+    posterFilename = filename;
+    posterPreviewImage.src = posterObjectUrl;
+    showModal(posterModal);
+  }
+
+  closePosterModalBtn.addEventListener('click', closePosterModal);
+  cancelPosterBtn.addEventListener('click', closePosterModal);
+  bindModalBackdrop(posterModal, closePosterModal);
+  downloadPosterBtn.addEventListener('click', () => {
+    if (!posterObjectUrl) return;
+    const link = document.createElement('a');
+    link.href = posterObjectUrl;
+    link.download = posterFilename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    showToast(t('posterDownloaded'));
+  });
 
   function saveApiKey(value) {
     customApiKey = value;
@@ -557,6 +625,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300);
   });
 
+  refreshWallBtn.addEventListener('click', async () => {
+    clearTimeout(searchTimeout);
+    refreshWallBtn.disabled = true;
+    refreshWallBtn.classList.add('loading');
+    try {
+      await loadWishWall();
+    } finally {
+      refreshWallBtn.disabled = false;
+      refreshWallBtn.classList.remove('loading');
+    }
+  });
+
   // Load and Render Wish Wall Cards
   async function loadWishWall() {
     try {
@@ -650,6 +730,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="bless-label">${escapeHtml(t('bless'))}</span>
             <span class="bless-count">${wish.blessings || 0}</span>
           </button>
+          <button class="btn-share" data-wish-id="${escapeHtml(wish.id)}">
+            <span class="share-icon" aria-hidden="true">↗</span>
+            <span>${escapeHtml(t('sharePoster'))}</span>
+          </button>
           <button class="btn-view-plan" data-wish-id="${escapeHtml(wish.id)}">${escapeHtml(t('viewPlan'))}</button>
         </div>
       `;
@@ -658,16 +742,282 @@ document.addEventListener('DOMContentLoaded', () => {
     wishGrid.replaceChildren(...cards);
   }
 
+  function wrapPosterText(context, value, maxWidth, maxLines) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (!text) return [];
+
+    const tokens = currentLanguage === 'en'
+      ? text.split(/(\s+)/).filter(Boolean)
+      : Array.from(text);
+    const lines = [];
+    let line = '';
+    let tokenIndex = 0;
+
+    for (; tokenIndex < tokens.length; tokenIndex += 1) {
+      const candidate = `${line}${tokens[tokenIndex]}`;
+      if (!line || context.measureText(candidate).width <= maxWidth) {
+        line = candidate;
+        continue;
+      }
+      lines.push(line.trim());
+      line = tokens[tokenIndex].trimStart();
+      if (lines.length === maxLines) break;
+    }
+
+    if (lines.length < maxLines && line) lines.push(line.trim());
+    if (tokenIndex < tokens.length && lines.length) {
+      let finalLine = lines.at(-1);
+      while (finalLine && context.measureText(`${finalLine}…`).width > maxWidth) {
+        finalLine = finalLine.slice(0, -1).trimEnd();
+      }
+      lines[lines.length - 1] = `${finalLine}…`;
+    }
+    return lines;
+  }
+
+  function drawPosterLines(context, lines, x, y, lineHeight) {
+    lines.forEach((line, index) => context.fillText(line, x, y + index * lineHeight));
+  }
+
+  function fillRoundedRect(context, x, y, width, height, radius) {
+    context.beginPath();
+    context.roundRect(x, y, width, height, radius);
+    context.fill();
+  }
+
+  async function canvasToPngBlob(canvas) {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('Canvas export returned no data');
+    return blob;
+  }
+
+  async function loadSiteQrImage() {
+    const response = await fetch('/api/site-qr');
+    if (!response.ok) throw new Error('Could not create site QR code');
+    const svg = await response.text();
+    const image = new Image();
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    await image.decode();
+    return image;
+  }
+
+  async function createWishPoster(wish) {
+    const [qrImage] = await Promise.all([
+      loadSiteQrImage(),
+      document.fonts?.ready
+    ]);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1440;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Canvas is unavailable');
+
+    const background = context.createLinearGradient(80, 0, 1000, 1440);
+    background.addColorStop(0, '#08090e');
+    background.addColorStop(0.52, '#121018');
+    background.addColorStop(1, '#201417');
+    context.fillStyle = background;
+    context.fillRect(0, 0, 1080, 1440);
+
+    const topGlow = context.createRadialGradient(860, 120, 0, 860, 120, 590);
+    topGlow.addColorStop(0, 'rgba(207, 176, 126, 0.22)');
+    topGlow.addColorStop(1, 'rgba(207, 176, 126, 0)');
+    context.fillStyle = topGlow;
+    context.fillRect(250, 0, 830, 760);
+
+    const bottomGlow = context.createRadialGradient(40, 1320, 0, 40, 1320, 520);
+    bottomGlow.addColorStop(0, 'rgba(115, 79, 96, 0.18)');
+    bottomGlow.addColorStop(1, 'rgba(115, 79, 96, 0)');
+    context.fillStyle = bottomGlow;
+    context.fillRect(0, 820, 700, 620);
+
+    context.strokeStyle = 'rgba(207, 176, 126, 0.16)';
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.roundRect(34, 34, 1012, 1372, 38);
+    context.stroke();
+
+    context.strokeStyle = 'rgba(207, 176, 126, 0.08)';
+    context.beginPath();
+    context.ellipse(870, 130, 330, 178, -0.24, 0, Math.PI * 2);
+    context.stroke();
+    context.beginPath();
+    context.ellipse(870, 130, 250, 128, -0.24, 0, Math.PI * 2);
+    context.stroke();
+
+    for (let index = 0; index < 42; index += 1) {
+      const x = (index * 197 + 83) % 1020 + 30;
+      const y = (index * 101 + 47) % 1320 + 30;
+      const radius = index % 7 === 0 ? 2.2 : 1;
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fillStyle = `rgba(232, 216, 190, ${index % 5 === 0 ? 0.5 : 0.2})`;
+      context.fill();
+    }
+
+    const fontFamily = '"Noto Sans SC", "Plus Jakarta Sans", sans-serif';
+    const locale = currentLanguage === 'en' ? 'en-US' : 'zh-CN';
+    const date = new Date(wish.createdAt || Date.now()).toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const category = t('categoryNames')[wish.category] || t('wishFallback');
+    const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
+
+    context.fillStyle = '#cfb07e';
+    context.font = `600 28px ${fontFamily}`;
+    context.fillText(`✦ ${t('brand')}`, 76, 96);
+
+    context.strokeStyle = 'rgba(207, 176, 126, 0.32)';
+    context.beginPath();
+    context.moveTo(76, 126);
+    context.lineTo(330, 126);
+    context.stroke();
+
+    context.font = `500 22px ${fontFamily}`;
+    const categoryBadgeWidth = Math.max(150, context.measureText(category).width + 58);
+    context.fillStyle = 'rgba(207, 176, 126, 0.12)';
+    fillRoundedRect(context, 76, 156, categoryBadgeWidth, 52, 26);
+    context.strokeStyle = 'rgba(207, 176, 126, 0.22)';
+    context.beginPath();
+    context.roundRect(76, 156, categoryBadgeWidth, 52, 26);
+    context.stroke();
+    context.fillStyle = '#dfc79f';
+    context.textAlign = 'center';
+    context.fillText(category, 76 + categoryBadgeWidth / 2, 190);
+    context.textAlign = 'left';
+
+    context.save();
+    context.shadowColor = 'rgba(0, 0, 0, 0.36)';
+    context.shadowBlur = 26;
+    context.fillStyle = 'rgba(247, 240, 228, 0.96)';
+    fillRoundedRect(context, 814, 52, 192, 220, 28);
+    context.restore();
+    context.drawImage(qrImage, 830, 68, 160, 160);
+    context.fillStyle = 'rgba(42, 31, 27, 0.66)';
+    context.font = `600 16px ${fontFamily}`;
+    context.textAlign = 'center';
+    context.fillText(t('posterScanLabel'), 910, 252);
+    context.textAlign = 'left';
+
+    context.fillStyle = 'rgba(255, 255, 255, 0.46)';
+    context.font = `600 22px ${fontFamily}`;
+    context.fillText(t('posterWishLabel').toUpperCase(), 84, 308);
+
+    context.fillStyle = 'rgba(207, 176, 126, 0.12)';
+    context.font = `700 132px ${fontFamily}`;
+    context.fillText('“', 52, 424);
+    context.fillStyle = '#f5f0e9';
+    context.font = `700 62px ${fontFamily}`;
+    drawPosterLines(context, wrapPosterText(context, wish.title, 884, 4), 98, 402, 82);
+
+    context.strokeStyle = 'rgba(207, 176, 126, 0.3)';
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(84, 688);
+    context.lineTo(182, 688);
+    context.stroke();
+    context.strokeStyle = 'rgba(255, 255, 255, 0.09)';
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(196, 688);
+    context.lineTo(996, 688);
+    context.stroke();
+
+    const insightCard = context.createLinearGradient(68, 730, 1012, 1116);
+    insightCard.addColorStop(0, 'rgba(30, 27, 34, 0.92)');
+    insightCard.addColorStop(1, 'rgba(12, 12, 17, 0.72)');
+    context.save();
+    context.shadowColor = 'rgba(0, 0, 0, 0.26)';
+    context.shadowBlur = 28;
+    context.fillStyle = insightCard;
+    fillRoundedRect(context, 64, 728, 952, 388, 38);
+    context.restore();
+    context.strokeStyle = 'rgba(207, 176, 126, 0.18)';
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.roundRect(64, 728, 952, 388, 38);
+    context.stroke();
+
+    context.fillStyle = 'rgba(207, 176, 126, 0.12)';
+    fillRoundedRect(context, 104, 774, 52, 52, 26);
+    context.fillStyle = '#cfb07e';
+    context.font = `600 22px ${fontFamily}`;
+    context.textAlign = 'center';
+    context.fillText('✦', 130, 809);
+    context.textAlign = 'left';
+    context.font = `600 24px ${fontFamily}`;
+    context.fillText(t('posterInspirationLabel'), 176, 809);
+
+    context.fillStyle = 'rgba(245, 240, 233, 0.84)';
+    context.font = `400 33px ${fontFamily}`;
+    drawPosterLines(context, wrapPosterText(context, inspiration, 824, 5), 108, 884, 52);
+
+    context.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    context.beginPath();
+    context.moveTo(84, 1176);
+    context.lineTo(996, 1176);
+    context.stroke();
+
+    context.fillStyle = 'rgba(255, 255, 255, 0.46)';
+    context.font = `500 19px ${fontFamily}`;
+    context.fillText(t('posterBlessingsLabel'), 84, 1218);
+    context.fillStyle = '#cfb07e';
+    context.font = `600 30px ${fontFamily}`;
+    context.fillText(`✦  ${wish.blessings || 0}`, 84, 1260);
+    context.textAlign = 'right';
+    context.fillStyle = 'rgba(255, 255, 255, 0.56)';
+    context.font = `400 22px ${fontFamily}`;
+    context.fillText(date, 996, 1260);
+    context.textAlign = 'left';
+
+    context.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    context.beginPath();
+    context.moveTo(84, 1306);
+    context.lineTo(996, 1306);
+    context.stroke();
+
+    context.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    context.font = `400 20px ${fontFamily}`;
+    context.fillText(t('footerQuote'), 84, 1360);
+    context.textAlign = 'right';
+    context.fillStyle = 'rgba(207, 176, 126, 0.72)';
+    context.fillText(t('brand'), 996, 1360);
+
+    if (!wish.id) throw new Error('Wish has no database ID');
+    return {
+      blob: await canvasToPngBlob(canvas),
+      filename: `${wish.id}.png`
+    };
+  }
+
   wishGrid.addEventListener('click', async event => {
     const button = event.target.closest('button[data-wish-id]');
     if (!button) return;
     const wish = currentWishesList.find(item => item.id === button.dataset.wishId);
     if (!wish) return;
 
+    if (button.classList.contains('btn-share')) {
+      button.disabled = true;
+      try {
+        const poster = await createWishPoster(wish);
+        openPosterModal(poster.blob, poster.filename);
+      } catch (error) {
+        console.error('Poster generation failed:', error);
+        showToast(t('posterError'));
+      } finally {
+        button.disabled = false;
+      }
+      return;
+    }
+
     if (button.classList.contains('btn-view-plan')) {
       openPlanModal(wish);
       return;
     }
+    if (!button.classList.contains('btn-bless')) return;
     if (button.disabled) return;
 
     const label = button.querySelector('.bless-label');

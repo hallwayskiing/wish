@@ -32,17 +32,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1rem;
 }
 
 .filter-pills {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.35rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filter-pills::-webkit-scrollbar {
+  display: none;
 }
 
 .filter-pill {
+  flex: 0 0 auto;
   background: transparent;
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
@@ -50,6 +58,7 @@
   border-radius: var(--radius-pill);
   font-size: 0.82rem;
   font-weight: 500;
+  white-space: nowrap;
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-in-out);
 }
@@ -66,6 +75,14 @@
   color: var(--accent);
 }
 
+.wall-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0.55rem;
+}
+
 .search-box {
   display: flex;
   align-items: center;
@@ -73,7 +90,8 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   padding: 0.35rem 1rem;
-  min-width: 240px;
+  width: 180px;
+  min-width: 180px;
   transition: border-color var(--duration-fast) var(--ease-in-out);
 }
 
@@ -99,6 +117,62 @@
 
 .search-box input::placeholder {
   color: var(--text-tertiary);
+}
+
+.wall-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+  min-height: 38px;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-secondary);
+  font: 500 0.82rem var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-in-out);
+}
+
+.wall-refresh-btn:hover:not(:disabled) {
+  border-color: var(--border-medium);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.wall-refresh-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.wall-refresh-btn.loading .refresh-icon {
+  animation: refreshSpin 0.75s linear infinite;
+}
+
+@keyframes refreshSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .wall-controls {
+    flex-wrap: wrap;
+  }
+
+  .wall-actions {
+    width: 100%;
+  }
+
+  .filter-pills {
+    width: 100%;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 /* Wish Grid — 3 columns (6 items per page = 2 rows) */
@@ -206,8 +280,8 @@
 
 .card-bottom {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.35rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border-subtle);
 }
@@ -260,12 +334,52 @@
   color: var(--accent);
 }
 
+.btn-share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  background: rgba(207, 176, 126, 0.07);
+  border: 1px solid rgba(207, 176, 126, 0.18);
+  color: var(--accent-dim);
+  font: 500 0.85rem var(--font-sans);
+  cursor: pointer;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-pill);
+  transition: all var(--duration-fast) var(--ease-in-out);
+}
+
+.btn-share:hover:not(:disabled) {
+  color: var(--accent);
+  background: rgba(207, 176, 126, 0.14);
+  border-color: rgba(207, 176, 126, 0.38);
+  box-shadow: 0 0 16px rgba(207, 176, 126, 0.08);
+  transform: translateY(-1px);
+}
+
+.btn-share .share-icon {
+  font-size: 0.92rem;
+  line-height: 1;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.btn-share:hover:not(:disabled) .share-icon {
+  transform: translate(1px, -1px);
+}
+
+.btn-share:disabled {
+  opacity: 0.5;
+  cursor: wait;
+  transform: none;
+}
+
 @keyframes blessSpin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
 .btn-view-plan {
+  margin-left: auto;
   background: none;
   border: none;
   color: var(--text-secondary);

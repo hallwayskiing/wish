@@ -322,6 +322,45 @@ textarea#wishInput::placeholder {
   max-width: 440px;
 }
 
+.poster-modal-dialog {
+  max-width: 680px;
+  max-height: calc(100dvh - 3rem);
+}
+
+.poster-modal-header {
+  padding: 1.6rem 4.5rem 1.1rem 1.8rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.poster-modal-header h2 {
+  margin-bottom: 0.3rem;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.poster-modal-header p {
+  color: var(--text-tertiary);
+  font-size: 0.84rem;
+}
+
+.poster-preview-body {
+  min-height: 0;
+  padding: 1.2rem;
+  overflow: auto;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.poster-preview-body img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 15rem);
+  margin: 0 auto;
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-lg);
+}
+
 @keyframes modalIn {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
@@ -621,5 +660,7 @@ textarea#wishInput::placeholder {
   .cat-pill { flex: 0 0 auto; padding: 0.45rem 0.9rem; }
   .plan-grid-2 { grid-template-columns: 1fr; }
   .modal-header, .modal-body, .modal-footer { padding-left: 1.4rem; padding-right: 1.4rem; }
+  .poster-modal-header { padding-left: 1.4rem; }
+  .poster-preview-body { padding: 0.8rem; }
   .close-modal-btn { top: 1rem; right: 1rem; width: 32px; height: 32px; font-size: 1.2rem; }
 }

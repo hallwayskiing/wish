@@ -17,7 +17,7 @@ async function apiFetch(endpoint, options = {}) {
   return data;
 }
 
-const WishAPI = {
+export const WishAPI = {
   submitWish: (wish, category, customApiKey, language = 'zh') =>
     apiFetch('/wish', {
       method: 'POST',
@@ -44,5 +44,3 @@ const WishAPI = {
   blessWish: (id) =>
     apiFetch(`/wishes/${encodeURIComponent(id)}/bless`, { method: 'POST' })
 };
-
-window.WishAPI = WishAPI;

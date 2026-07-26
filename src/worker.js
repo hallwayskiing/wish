@@ -1,23 +1,13 @@
 import { CATEGORY_NAMES, buildPrompt } from './prompt.js';
-import QRCode from 'qrcode/lib/browser.js';
-
-import configYaml from '../config.yaml';
+import { adminLogin, adminLogout, isAdminAuthenticated } from './admin-auth.js';
+import { deleteAdminWish, updateAdminWish } from './admin-wishes.js';
+import { json, parseJsonBody } from './http.js';
+import { siteQrCode } from './qr.js';
+import { bindStatement, parseWishRow, serializePlan, VALID_CATEGORIES, WISH_FIELDS } from './wish-data.js';
 
 const GEMINI_MODEL = 'gemini-flash-lite-latest';
-const ADMIN_COOKIE = 'wish_admin_session';
-const ADMIN_SESSION_SECONDS = 24 * 60 * 60;
 const MAX_PLAN_LENGTH = 100_000;
-const WISH_FIELDS = 'id, title, category, categoryName, createdAt, blessings, aiPlan';
 const WISH_ID_PATTERN = /^wish_[a-zA-Z0-9_-]+$/;
-const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_NAMES.zh));
-const textEncoder = new TextEncoder();
-
-function readYamlString(source, key) {
-  const match = source.match(new RegExp(`^${key}:\\s*(?:\"([^\"]*)\"|'([^']*)'|([^#\\r\\n]+))\\s*$`, 'm'));
-  return (match?.[1] ?? match?.[2] ?? match?.[3] ?? '').trim();
-}
-
-const ADMIN_PASSWORD = readYamlString(configYaml, 'admin_password');
 
 const MESSAGES = {
   zh: {
@@ -58,107 +48,6 @@ const MESSAGES = {
   }
 };
 
-const JSON_HEADERS = {
-  'content-type': 'application/json; charset=utf-8',
-  'cache-control': 'no-store'
-};
-
-function json(data, status = 200, headers = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...JSON_HEADERS, ...headers }
-  });
-}
-
-async function siteQrCode(request) {
-  const siteUrl = new URL('/', request.url).href;
-  const svg = await QRCode.toString(siteUrl, {
-    type: 'svg',
-    width: 160,
-    margin: 2,
-    errorCorrectionLevel: 'M',
-    color: {
-      dark: '#17100d',
-      light: '#f7f0e4'
-    }
-  });
-  return new Response(svg, {
-    headers: {
-      'content-type': 'image/svg+xml; charset=utf-8',
-      'cache-control': 'public, max-age=86400'
-    }
-  });
-}
-
-function bytesToHex(bytes) {
-  return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('');
-}
-
-function constantTimeEqual(left, right) {
-  if (left.length !== right.length) return false;
-  let difference = 0;
-  for (let index = 0; index < left.length; index += 1) {
-    difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
-  }
-  return difference === 0;
-}
-
-async function sha256(value) {
-  return bytesToHex(await crypto.subtle.digest('SHA-256', textEncoder.encode(value)));
-}
-
-let adminSigningKeyPromise;
-let adminPasswordHashPromise;
-
-function getAdminSigningKey() {
-  adminSigningKeyPromise ||= crypto.subtle.importKey(
-    'raw',
-    textEncoder.encode(ADMIN_PASSWORD),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  return adminSigningKeyPromise;
-}
-
-function getAdminPasswordHash() {
-  adminPasswordHashPromise ||= sha256(ADMIN_PASSWORD);
-  return adminPasswordHashPromise;
-}
-
-async function signAdminSession(expiresAt) {
-  const signature = await crypto.subtle.sign(
-    'HMAC',
-    await getAdminSigningKey(),
-    textEncoder.encode(`admin:${expiresAt}`)
-  );
-  return `${expiresAt}.${bytesToHex(signature)}`;
-}
-
-function getCookie(request, name) {
-  const cookieHeader = request.headers.get('cookie') || '';
-  for (const cookie of cookieHeader.split(';')) {
-    const separator = cookie.indexOf('=');
-    if (separator === -1) continue;
-    if (cookie.slice(0, separator).trim() === name) {
-      return cookie.slice(separator + 1).trim();
-    }
-  }
-  return '';
-}
-
-async function isAdminAuthenticated(request) {
-  if (!ADMIN_PASSWORD) return false;
-  const token = getCookie(request, ADMIN_COOKIE);
-  const separator = token.indexOf('.');
-  if (separator === -1) return false;
-
-  const expiresAt = Number(token.slice(0, separator));
-  if (!Number.isInteger(expiresAt) || expiresAt <= Math.floor(Date.now() / 1000)) return false;
-
-  return constantTimeEqual(token, await signAdminSession(expiresAt));
-}
-
 function normalizeLanguage(lang) {
   return lang === 'en' ? 'en' : 'zh';
 }
@@ -175,24 +64,6 @@ function getMsg(lang, key, arg) {
 
 function createWishId() {
   return `wish_${Date.now()}_${crypto.randomUUID().slice(0, 5)}`;
-}
-
-function serializePlan(plan) {
-  if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return null;
-  return JSON.stringify(plan);
-}
-
-function parseWishRow(row) {
-  if (!row) return null;
-  try {
-    return { ...row, aiPlan: JSON.parse(row.aiPlan || '{}') };
-  } catch {
-    return { ...row, aiPlan: {} };
-  }
-}
-
-function bindStatement(statement, params) {
-  return params.length ? statement.bind(...params) : statement;
 }
 
 async function generatePlan(wish, category, apiKey, language) {
@@ -231,14 +102,6 @@ async function generatePlan(wish, category, apiKey, language) {
     return JSON.parse(responseText);
   } catch {
     throw new Error(getMsg(language, 'invalidJson'));
-  }
-}
-
-async function parseJsonBody(request) {
-  try {
-    return await request.json();
-  } catch {
-    return null;
   }
 }
 
@@ -407,109 +270,6 @@ async function blessWish(id, env) {
   } catch (error) {
     console.error('Wish blessing error:', error);
     return json({ error: getMsg('zh', 'blessFailed') }, 500);
-  }
-}
-
-async function adminLogin(request) {
-  if (!ADMIN_PASSWORD) {
-    return json({ error: '管理员密码尚未配置。' }, 503);
-  }
-
-  const body = await parseJsonBody(request);
-  const submittedPassword = typeof body?.password === 'string' ? body.password : '';
-  const [submittedHash, expectedHash] = await Promise.all([
-    sha256(submittedPassword),
-    getAdminPasswordHash()
-  ]);
-
-  if (!constantTimeEqual(submittedHash, expectedHash)) {
-    return json({ error: '密码错误。' }, 401);
-  }
-
-  const expiresAt = Math.floor(Date.now() / 1000) + ADMIN_SESSION_SECONDS;
-  const token = await signAdminSession(expiresAt);
-  return json(
-    { success: true },
-    200,
-    {
-      'set-cookie': `${ADMIN_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${ADMIN_SESSION_SECONDS}`
-    }
-  );
-}
-
-function adminLogout() {
-  return json(
-    { success: true },
-    200,
-    {
-      'set-cookie': `${ADMIN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`
-    }
-  );
-}
-
-async function updateAdminWish(id, request, env) {
-  const body = await parseJsonBody(request);
-  const title = typeof body?.title === 'string' ? body.title.trim().slice(0, 300) : '';
-  const category = typeof body?.category === 'string' ? body.category : '';
-  const blessings = Number(body?.blessings);
-  const serializedPlan = serializePlan(body?.aiPlan);
-
-  if (!title) return json({ error: '愿望内容不能为空。' }, 400);
-  if (!VALID_CATEGORIES.has(category)) return json({ error: '愿望分类无效。' }, 400);
-  if (!Number.isInteger(blessings) || blessings < 0 || blessings > 999999999) {
-    return json({ error: '助愿数量必须是大于或等于 0 的整数。' }, 400);
-  }
-  if (!serializedPlan) {
-    return json({ error: 'AI Plan 必须是有效的 JSON 对象。' }, 400);
-  }
-  if (serializedPlan.length > MAX_PLAN_LENGTH) {
-    return json({ error: 'AI Plan 内容过长。' }, 400);
-  }
-
-  try {
-    const update = await env.DB.prepare(`
-      UPDATE wishes
-      SET title = ?, category = ?, categoryName = ?, blessings = ?, aiPlan = ?
-      WHERE id = ?
-    `).bind(
-      title,
-      category,
-      CATEGORY_NAMES.zh[category],
-      blessings,
-      serializedPlan,
-      id
-    ).run();
-
-    if (!update.meta?.changes) {
-      return json({ error: '未找到该愿望。' }, 404);
-    }
-
-    const row = await env.DB.prepare(`
-      SELECT ${WISH_FIELDS}
-      FROM wishes
-      WHERE id = ?
-    `).bind(id).first();
-
-    return json({
-      success: true,
-      wish: parseWishRow(row)
-    });
-  } catch (error) {
-    console.error('Admin wish update error:', error);
-    return json({ error: '更新愿望失败。' }, 500);
-  }
-}
-
-async function deleteAdminWish(id, env) {
-  try {
-    const result = await env.DB.prepare('DELETE FROM wishes WHERE id = ?').bind(id).run();
-    if (!result.meta?.changes) {
-      return json({ error: '未找到该愿望。' }, 404);
-    }
-    return json({ success: true });
-  } catch (error) {
-    console.error('Admin wish delete error:', error);
-    return json({ error: '删除愿望失败。' }, 500);
   }
 }
 

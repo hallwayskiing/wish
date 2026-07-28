@@ -1,4 +1,9 @@
-export const SITE_CONFIG = Object.freeze({
+export interface SiteConfig {
+  brand: Record<'zh' | 'en', string>;
+  description: Record<'zh' | 'en', string>;
+}
+
+export const SITE_CONFIG: Readonly<SiteConfig> = Object.freeze({
   brand: Object.freeze({
     zh: '璀璨许愿阁',
     en: 'Cosmic Wishing Well'

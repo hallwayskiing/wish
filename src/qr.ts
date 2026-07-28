@@ -1,6 +1,7 @@
+// @ts-expect-error qrcode browser module missing type declarations
 import QRCode from 'qrcode/lib/browser.js';
 
-export async function siteQrCode(request) {
+export async function siteQrCode(request: Request): Promise<Response> {
   const siteUrl = new URL('/', request.url).href;
   const svg = await QRCode.toString(siteUrl, {
     type: 'svg',

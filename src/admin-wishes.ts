@@ -1,19 +1,25 @@
-import { CATEGORY_NAMES } from './categories.js';
+import { CATEGORY_NAMES, isCategoryId } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { serverMessage } from './server-messages.js';
-import { parseWishRow, serializePlan, VALID_CATEGORIES, WISH_FIELDS } from './wish-data.js';
+import { Env, AIPlan } from './types.js';
+import { MAX_PLAN_LENGTH, parseWishRow, serializePlan, WISH_FIELDS } from './wish-data.js';
 
-const MAX_PLAN_LENGTH = 100_000;
+interface UpdateAdminWishBody {
+  title?: string;
+  category?: string;
+  blessings?: number;
+  aiPlan?: AIPlan;
+}
 
-export async function updateAdminWish(id, request, env) {
-  const body = await parseJsonBody(request);
+export async function updateAdminWish(id: string, request: Request, env: Env): Promise<Response> {
+  const body = await parseJsonBody<UpdateAdminWishBody>(request);
   const title = typeof body?.title === 'string' ? body.title.trim().slice(0, 300) : '';
   const category = typeof body?.category === 'string' ? body.category : '';
   const blessings = Number(body?.blessings);
   const serializedPlan = serializePlan(body?.aiPlan);
 
   if (!title) return json({ error: serverMessage('zh', 'emptyTitle') }, 400);
-  if (!VALID_CATEGORIES.has(category)) {
+  if (!isCategoryId(category)) {
     return json({ error: serverMessage('zh', 'invalidCategory') }, 400);
   }
   if (!Number.isInteger(blessings) || blessings < 0 || blessings > 999999999) {
@@ -54,7 +60,7 @@ export async function updateAdminWish(id, request, env) {
   }
 }
 
-export async function deleteAdminWish(id, env) {
+export async function deleteAdminWish(id: string, env: Env): Promise<Response> {
   try {
     const result = await env.DB.prepare('DELETE FROM wishes WHERE id = ?').bind(id).run();
     if (!result.meta?.changes) {

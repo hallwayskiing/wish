@@ -1,8 +1,25 @@
-/* ==========================================================================
-   Minimal Starfield Particles
-   ========================================================================== */
+interface Particle {
+  x: number;
+  y: number;
+  radius: number;
+  color: string;
+  alpha: number;
+  twinkleSpeed: number;
+  vx: number;
+  vy: number;
+  glow: boolean;
+}
 
-(function() {
+interface Meteor {
+  x: number;
+  y: number;
+  length: number;
+  speed: number;
+  angle: number;
+  alpha: number;
+}
+
+export function initParticles(): void {
   const STAR_COLORS = [
     'rgba(255, 255, 255, 1)',
     'rgba(255, 255, 255, 0.8)',
@@ -10,37 +27,40 @@
     'rgba(207, 176, 126, 0.6)',
     'rgba(200, 200, 210, 0.7)'
   ];
-  const canvas = document.getElementById('particleCanvas');
+  const canvas = document.getElementById('particleCanvas') as HTMLCanvasElement | null;
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
   let width = 0;
   let height = 0;
-  let particles = [];
-  let meteors = [];
+  let particles: Particle[] = [];
+  let meteors: Meteor[] = [];
 
-  function initCanvas() {
+  function initCanvas(): void {
+    if (!canvas || !ctx) return;
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
     createParticles();
   }
 
-  function createParticles() {
+  function createParticles(): void {
     const count = Math.floor((width * height) / 9000);
-    particles = Array.from({ length: count }, () => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        radius: Math.random() * 1.6 + 0.3,
-        color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
-        alpha: Math.random() * 0.8 + 0.15,
-        twinkleSpeed: (Math.random() * 0.012 + 0.003) * (Math.random() < 0.5 ? 1 : -1),
-        vx: (Math.random() - 0.5) * 0.1,
-        vy: (Math.random() - 0.5) * 0.1,
-        glow: Math.random() < 0.18
-      }));
+    particles = Array.from({ length: count }, (): Particle => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      radius: Math.random() * 1.6 + 0.3,
+      color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
+      alpha: Math.random() * 0.8 + 0.15,
+      twinkleSpeed: (Math.random() * 0.012 + 0.003) * (Math.random() < 0.5 ? 1 : -1),
+      vx: (Math.random() - 0.5) * 0.1,
+      vy: (Math.random() - 0.5) * 0.1,
+      glow: Math.random() < 0.18
+    }));
   }
 
-  function maybeCreateMeteor() {
+  function maybeCreateMeteor(): void {
     if (Math.random() < 0.015 && meteors.length < 2) {
       meteors.push({
         x: Math.random() * width * 0.8,
@@ -53,7 +73,7 @@
     }
   }
 
-  function update() {
+  function update(): void {
     particles.forEach(p => {
       p.alpha += p.twinkleSpeed;
       if (p.alpha >= 0.7 || p.alpha <= 0.08) {
@@ -79,7 +99,8 @@
     }
   }
 
-  function draw() {
+  function draw(): void {
+    if (!ctx) return;
     ctx.clearRect(0, 0, width, height);
 
     particles.forEach(p => {
@@ -114,7 +135,7 @@
     });
   }
 
-  function loop() {
+  function loop(): void {
     update();
     draw();
     requestAnimationFrame(loop);
@@ -123,4 +144,6 @@
   window.addEventListener('resize', initCanvas);
   initCanvas();
   loop();
-})();
+}
+
+initParticles();

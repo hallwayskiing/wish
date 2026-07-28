@@ -3,12 +3,13 @@ import { deleteAdminWish, updateAdminWish } from './admin-wishes.js';
 import { json } from './http.js';
 import { siteQrCode } from './qr.js';
 import { serverMessage } from './server-messages.js';
+import { Env } from './types.js';
 import { blessWish, createWishDraft, listWishes, saveWish } from './wishes.js';
 
 const ADMIN_WISH_ROUTE = /^\/api\/admin\/wishes\/([^/]+)$/;
 const BLESS_WISH_ROUTE = /^\/api\/wishes\/([^/]+)\/bless$/;
 
-function routeId(pathname, pattern) {
+function routeId(pathname: string, pattern: RegExp): string | null {
   const match = pathname.match(pattern);
   if (!match) return null;
   try {
@@ -18,7 +19,7 @@ function routeId(pathname, pattern) {
   }
 }
 
-async function handleAdminRequest(request, env, url) {
+async function handleAdminRequest(request: Request, env: Env, url: URL): Promise<Response | null> {
   if (request.method === 'POST' && url.pathname === '/api/admin/login') {
     return adminLogin(request, env);
   }
@@ -48,7 +49,7 @@ async function handleAdminRequest(request, env, url) {
   return json({ error: serverMessage('zh', 'routeNotFound') }, 404);
 }
 
-export async function handleApiRequest(request, env, url = new URL(request.url)) {
+export async function handleApiRequest(request: Request, env: Env, url = new URL(request.url)): Promise<Response> {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204 });
   }

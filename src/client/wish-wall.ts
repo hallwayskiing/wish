@@ -1,14 +1,38 @@
-import { escapeHtml } from './ui.js';
+import { getCategoryName } from '../categories.js';
+import { WishAPI } from './api.js';
+import { createWishPoster } from './poster.js';
+import { Language, TranslateFn, Wish } from './types.js';
+import { escapeHtml, requireElement } from './ui.js';
 
 const PAGE_LIMIT = 6;
-let posterModulePromise;
+let posterModulePromise: Promise<{ createWishPoster: typeof createWishPoster }> | null = null;
 
-function loadPosterModule() {
+function loadPosterModule(): Promise<{ createWishPoster: typeof createWishPoster }> {
   posterModulePromise ||= import('./poster.js').catch(error => {
     posterModulePromise = null;
     throw error;
   });
   return posterModulePromise;
+}
+
+interface CreateWishWallOptions {
+  api: typeof WishAPI;
+  getLanguage: () => Language;
+  openPlanModal: (wish: Wish) => void;
+  openPosterModal: (blob: Blob, filename: string) => void;
+  scrollToSection: (element: HTMLElement) => void;
+  showToast: (message: string) => void;
+  t: TranslateFn;
+}
+
+export interface WishWallController {
+  load: (options?: { firstPage?: boolean }) => Promise<void>;
+  render: () => void;
+}
+
+interface PageButtonOptions {
+  active?: boolean;
+  disabled?: boolean;
 }
 
 export function createWishWall({
@@ -19,21 +43,21 @@ export function createWishWall({
   scrollToSection,
   showToast,
   t
-}) {
-  const filterPills = document.getElementById('wallFilterPills');
-  const searchInput = document.getElementById('searchInput');
-  const refreshButton = document.getElementById('refreshWallBtn');
-  const grid = document.getElementById('wishGrid');
-  const pagination = document.getElementById('wallPagination');
-  const section = document.getElementById('wish-wall');
+}: CreateWishWallOptions): WishWallController {
+  const filterPills = requireElement('wallFilterPills');
+  const searchInput = requireElement<HTMLInputElement>('searchInput');
+  const refreshButton = requireElement<HTMLButtonElement>('refreshWallBtn');
+  const grid = requireElement('wishGrid');
+  const pagination = requireElement('wallPagination');
+  const section = requireElement('wish-wall');
 
   let activeFilter = 'all';
   let currentPage = 1;
   let totalPages = 1;
-  let wishes = [];
-  let searchTimeout;
+  let wishes: Wish[] = [];
+  let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 
-  function renderMessage(icon, message, withPanel = false) {
+  function renderMessage(icon: string, message: string, withPanel = false): void {
     grid.innerHTML = `
       <div class="empty-wall${withPanel ? ' glass-panel' : ''}">
         <div class="empty-icon">${icon}</div>
@@ -42,7 +66,7 @@ export function createWishWall({
     `;
   }
 
-  function renderGrid() {
+  function renderGrid(): void {
     if (!wishes.length) {
       renderMessage('🌟', t('wallEmpty'), true);
       return;
@@ -58,11 +82,12 @@ export function createWishWall({
         day: '2-digit'
       });
       const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
+      const categoryName = getCategoryName(wish.category, language, t('wishFallback'));
 
       card.innerHTML = `
         <div>
           <div class="card-top">
-            <span class="card-cat-badge">${escapeHtml(t('categoryNames')[wish.category] || t('wishFallback'))}</span>
+            <span class="card-cat-badge">${escapeHtml(categoryName)}</span>
             <span class="card-date">${date}</span>
           </div>
           <h3 class="card-wish-text">“${escapeHtml(wish.title)}”</h3>
@@ -89,16 +114,16 @@ export function createWishWall({
     grid.replaceChildren(...cards);
   }
 
-  function createPageButton(label, targetPage, options = {}) {
+  function createPageButton(label: string, targetPage: number, options: PageButtonOptions = {}): HTMLButtonElement {
     const button = document.createElement('button');
     button.className = `page-btn${options.active ? ' active' : ''}`;
     button.textContent = label;
-    button.disabled = options.disabled;
+    button.disabled = Boolean(options.disabled);
     button.addEventListener('click', () => goToPage(targetPage));
     return button;
   }
 
-  function renderPagination() {
+  function renderPagination(): void {
     if (totalPages <= 1) {
       pagination.replaceChildren();
       return;
@@ -111,40 +136,51 @@ export function createWishWall({
     pagination.replaceChildren(...buttons);
   }
 
-  async function load({ firstPage = false } = {}) {
+  let activeAbortController: AbortController | null = null;
+
+  async function load({ firstPage = false }: { firstPage?: boolean } = {}): Promise<void> {
     if (firstPage) currentPage = 1;
+    if (activeAbortController) {
+      activeAbortController.abort();
+    }
+    activeAbortController = new AbortController();
+    const { signal } = activeAbortController;
+
     try {
       const result = await api.getWishes(
         activeFilter,
         searchInput.value.trim(),
         currentPage,
-        PAGE_LIMIT
+        PAGE_LIMIT,
+        signal
       );
       wishes = result.wishes || [];
       totalPages = result.totalPages || 1;
       currentPage = result.page || 1;
       renderGrid();
       renderPagination();
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') return;
       console.error('Failed to load wish wall:', error);
       renderMessage('🪐', t('wallLoadError'));
       pagination.replaceChildren();
     }
   }
 
-  function goToPage(page) {
+  function goToPage(page: number): void {
     if (page === currentPage || page < 1 || page > totalPages) return;
     currentPage = page;
     load();
     scrollToSection(section);
   }
 
-  filterPills.addEventListener('click', event => {
-    const pill = event.target.closest('.filter-pill');
+  filterPills.addEventListener('click', (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+    const pill = target?.closest('.filter-pill') as HTMLElement | null;
     if (!pill) return;
     filterPills.querySelector('.filter-pill.active')?.classList.remove('active');
     pill.classList.add('active');
-    activeFilter = pill.dataset.filter;
+    activeFilter = pill.dataset.filter || 'all';
     load({ firstPage: true });
   });
 
@@ -165,8 +201,9 @@ export function createWishWall({
     }
   });
 
-  grid.addEventListener('click', async event => {
-    const button = event.target.closest('button[data-wish-id]');
+  grid.addEventListener('click', async (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+    const button = target?.closest('button[data-wish-id]') as HTMLButtonElement | null;
     if (!button) return;
     const wish = wishes.find(item => item.id === button.dataset.wishId);
     if (!wish) return;
@@ -174,8 +211,8 @@ export function createWishWall({
     if (button.classList.contains('btn-share')) {
       button.disabled = true;
       try {
-        const { createWishPoster } = await loadPosterModule();
-        const poster = await createWishPoster(wish, { language: getLanguage(), t });
+        const { createWishPoster: generatePoster } = await loadPosterModule();
+        const poster = await generatePoster(wish, { language: getLanguage(), t });
         openPosterModal(poster.blob, poster.filename);
       } catch (error) {
         console.error('Poster generation failed:', error);
@@ -192,8 +229,8 @@ export function createWishWall({
     }
     if (!button.classList.contains('btn-bless') || button.disabled) return;
 
-    const iconEl = button.querySelector('.bless-icon');
-    const originalIcon = iconEl ? iconEl.textContent : '✨';
+    const iconEl = button.querySelector('.bless-icon') as HTMLElement | null;
+    const originalIcon = iconEl ? iconEl.textContent || '✨' : '✨';
 
     button.disabled = true;
     button.classList.add('loading');
@@ -202,7 +239,8 @@ export function createWishWall({
     try {
       const result = await api.blessWish(wish.id);
       wish.blessings = result.blessings;
-      button.querySelector('.bless-count').textContent = result.blessings;
+      const countEl = button.querySelector('.bless-count');
+      if (countEl) countEl.textContent = String(result.blessings);
       button.classList.add('blessed');
       showToast(t('blessSuccess'));
     } catch {

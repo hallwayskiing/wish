@@ -1,4 +1,31 @@
-const SERVER_MESSAGES = Object.freeze({
+type MessageKey =
+  | 'emptyWish'
+  | 'generationFailed'
+  | 'missingDraft'
+  | 'emptyTitle'
+  | 'invalidCategory'
+  | 'invalidPlan'
+  | 'planTooLong'
+  | 'invalidBlessings'
+  | 'alreadySaved'
+  | 'saveFailed'
+  | 'listFailed'
+  | 'notFound'
+  | 'blessFailed'
+  | 'updateFailed'
+  | 'deleteFailed'
+  | 'noApiKey'
+  | 'modelRequestFailed'
+  | 'emptyModelResponse'
+  | 'invalidModelJson'
+  | 'adminPasswordMissing'
+  | 'invalidPassword'
+  | 'adminLoginRequired'
+  | 'routeNotFound';
+
+type MessageValue = string | ((detail?: string) => string);
+
+const SERVER_MESSAGES: Readonly<Record<'zh' | 'en', Readonly<Record<MessageKey, MessageValue>>>> = Object.freeze({
   zh: Object.freeze({
     emptyWish: '请填写您的愿望！',
     generationFailed: '愿望生成失败。',
@@ -16,7 +43,7 @@ const SERVER_MESSAGES = Object.freeze({
     updateFailed: '更新愿望失败。',
     deleteFailed: '删除愿望失败。',
     noApiKey: '未配置 API Key，请打开【Google API】并填写 Gemini API Key。',
-    modelRequestFailed: detail => `大模型调用失败：${detail}`,
+    modelRequestFailed: (detail?: string) => `大模型调用失败：${detail || ''}`,
     emptyModelResponse: '大模型返回了空内容。',
     invalidModelJson: '大模型返回的 JSON 格式无效，请重试。',
     adminPasswordMissing: '管理员密码尚未配置。',
@@ -41,7 +68,7 @@ const SERVER_MESSAGES = Object.freeze({
     updateFailed: 'Could not update the wish.',
     deleteFailed: 'Could not delete the wish.',
     noApiKey: 'No API key configured. Open Google API and enter your Gemini API key.',
-    modelRequestFailed: detail => `Model request failed: ${detail}`,
+    modelRequestFailed: (detail?: string) => `Model request failed: ${detail || ''}`,
     emptyModelResponse: 'The model returned an empty response.',
     invalidModelJson: 'The model returned invalid JSON. Please try again.',
     adminPasswordMissing: 'The administrator password is not configured.',
@@ -51,7 +78,7 @@ const SERVER_MESSAGES = Object.freeze({
   })
 });
 
-export function serverMessage(language, key, detail) {
+export function serverMessage(language: string | null | undefined, key: MessageKey, detail?: string): string {
   const locale = language === 'en' ? 'en' : 'zh';
   const value = SERVER_MESSAGES[locale][key];
   if (typeof value === 'function') return value(detail);

@@ -1,8 +1,22 @@
+import { AIPlan, AIPlanPhase } from '../types.js';
 import { escapeHtml } from '../ui.js';
 
 const PHASE_LABEL = '阶段';
 
-export function buildPlanForm(aiPlan) {
+export interface PlanFormController {
+  element: HTMLElement;
+  getAiPlan: () => AIPlan;
+}
+
+interface CreateTextListOptions {
+  title: string;
+  values?: string[];
+  inputClass: string;
+  placeholder: string;
+  addLabel: string;
+}
+
+export function buildPlanForm(aiPlan?: AIPlan): PlanFormController {
   const plan = aiPlan || {};
   const container = document.createElement('div');
   container.className = 'plan-form-container';
@@ -29,7 +43,7 @@ export function buildPlanForm(aiPlan) {
   const stepsList = document.createElement('div');
   stepsList.className = 'roadmap-steps-list';
 
-  function createStepEditor(step = {}, index = 0) {
+  function createStepEditor(step: AIPlanPhase = {}, index = 0): HTMLElement {
     const stepCard = document.createElement('div');
     stepCard.className = 'roadmap-step-editor';
 
@@ -58,7 +72,7 @@ export function buildPlanForm(aiPlan) {
       </div>
     `;
 
-    stepCard.querySelector('.btn-remove-step').addEventListener('click', () => {
+    stepCard.querySelector('.btn-remove-step')?.addEventListener('click', () => {
       stepCard.remove();
       updateStepBadges();
     });
@@ -66,9 +80,10 @@ export function buildPlanForm(aiPlan) {
     return stepCard;
   }
 
-  function updateStepBadges() {
+  function updateStepBadges(): void {
     stepsList.querySelectorAll('.roadmap-step-editor').forEach((card, idx) => {
-      card.querySelector('.step-num-badge').textContent = `${PHASE_LABEL} ${idx + 1}`;
+      const badge = card.querySelector('.step-num-badge');
+      if (badge) badge.textContent = `${PHASE_LABEL} ${idx + 1}`;
     });
   }
 
@@ -86,10 +101,12 @@ export function buildPlanForm(aiPlan) {
     stepsList.appendChild(createStepEditor({}, currentCount));
   });
 
-  roadmapSection.append(roadmapTitle, stepsList, addStepBtn);
+  roadmapSection.appendChild(roadmapTitle);
+  roadmapSection.appendChild(stepsList);
+  roadmapSection.appendChild(addStepBtn);
   container.appendChild(roadmapSection);
 
-  function createTextListSection({ title, values, inputClass, placeholder, addLabel }) {
+  function createTextListSection({ title, values, inputClass, placeholder, addLabel }: CreateTextListOptions): HTMLElement {
     const section = document.createElement('div');
     section.className = 'plan-form-section';
     section.innerHTML = `
@@ -101,14 +118,14 @@ export function buildPlanForm(aiPlan) {
     const list = document.createElement('div');
     list.className = 'dynamic-items-list';
 
-    const createRow = (text = '') => {
+    const createRow = (text = ''): HTMLElement => {
       const row = document.createElement('div');
       row.className = 'dynamic-item-row';
       row.innerHTML = `
         <input type="text" class="plan-form-input ${inputClass}" placeholder="${placeholder}" value="${escapeHtml(text)}">
         <button type="button" class="btn-remove-item" title="删除项">✕</button>
       `;
-      row.querySelector('.btn-remove-item').addEventListener('click', () => row.remove());
+      row.querySelector('.btn-remove-item')?.addEventListener('click', () => row.remove());
       return row;
     };
 
@@ -120,18 +137,21 @@ export function buildPlanForm(aiPlan) {
     addButton.textContent = `＋ ${addLabel}`;
     addButton.addEventListener('click', () => list.appendChild(createRow()));
 
-    section.append(list, addButton);
+    section.appendChild(list);
+    section.appendChild(addButton);
     return section;
   }
 
-  container.append(
+  container.appendChild(
     createTextListSection({
       title: '关键微习惯与工具',
       values: plan.habitsAndTools,
       inputClass: 'habit-item-input',
       placeholder: '输入建议养成的微习惯或推荐工具...',
       addLabel: '添加微习惯/工具'
-    }),
+    })
+  );
+  container.appendChild(
     createTextListSection({
       title: '避坑指南与应对策略',
       values: plan.pitfalls,
@@ -162,31 +182,40 @@ export function buildPlanForm(aiPlan) {
   jsonArea.readOnly = true;
   jsonArea.value = JSON.stringify(plan, null, 2);
 
-  jsonDebugToggle.append(debugSummary, jsonArea);
+  jsonDebugToggle.appendChild(debugSummary);
+  jsonDebugToggle.appendChild(jsonArea);
   container.appendChild(jsonDebugToggle);
 
-  function collectValues(selector) {
-    return [...container.querySelectorAll(selector)]
+  function collectValues(selector: string): string[] {
+    return Array.from(container.querySelectorAll<HTMLInputElement>(selector))
       .map(input => input.value.trim())
       .filter(Boolean);
   }
 
-  function getAiPlan() {
-    const inspiration = container.querySelector('.plan-inspiration-input').value.trim();
-    const firstStep = container.querySelector('.plan-firststep-input').value.trim();
+  function getAiPlan(): AIPlan {
+    const inspirationInput = container.querySelector('.plan-inspiration-input') as HTMLTextAreaElement | null;
+    const firstStepInput = container.querySelector('.plan-firststep-input') as HTMLTextAreaElement | null;
+    const inspiration = inspirationInput ? inspirationInput.value.trim() : '';
+    const firstStep = firstStepInput ? firstStepInput.value.trim() : '';
 
-    const roadmap = [];
+    const roadmap: AIPlanPhase[] = [];
     container.querySelectorAll('.roadmap-step-editor').forEach(stepCard => {
-      const phase = stepCard.querySelector('.step-phase-input').value.trim();
-      const timeline = stepCard.querySelector('.step-timeline-input').value.trim();
-      const title = stepCard.querySelector('.step-title-input').value.trim();
-      const action = stepCard.querySelector('.step-action-input').value.trim();
+      const phaseInput = stepCard.querySelector('.step-phase-input') as HTMLInputElement | null;
+      const timelineInput = stepCard.querySelector('.step-timeline-input') as HTMLInputElement | null;
+      const titleInput = stepCard.querySelector('.step-title-input') as HTMLInputElement | null;
+      const actionInput = stepCard.querySelector('.step-action-input') as HTMLTextAreaElement | null;
+
+      const phase = phaseInput ? phaseInput.value.trim() : '';
+      const timeline = timelineInput ? timelineInput.value.trim() : '';
+      const title = titleInput ? titleInput.value.trim() : '';
+      const action = actionInput ? actionInput.value.trim() : '';
+
       if (phase || timeline || title || action) {
         roadmap.push({ phase, timeline, title, action });
       }
     });
 
-    const updatedPlan = {
+    const updatedPlan: AIPlan = {
       inspiration,
       roadmap,
       habitsAndTools: collectValues('.habit-item-input'),

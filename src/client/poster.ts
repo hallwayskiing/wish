@@ -1,12 +1,29 @@
-function wrapPosterText(context, value, maxWidth, maxLines) {
+import { getCategoryName } from '../categories.js';
+import { Language, TranslateFn, Wish } from './types.js';
+
+interface PosterOptions {
+  language: Language;
+  t: TranslateFn;
+}
+
+interface PosterResult {
+  blob: Blob;
+  filename: string;
+}
+
+function wrapPosterText(
+  context: CanvasRenderingContext2D,
+  value: string | undefined,
+  maxWidth: number,
+  maxLines: number
+): string[] {
   const text = String(value || '').replace(/\s+/g, ' ').trim();
   if (!text) return [];
 
-  // Tokenize by CJK characters, whitespace, and non-CJK word chunks (English words/punctuation)
   const pattern = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]|\s+|[^\s\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+/g;
   const tokens = text.match(pattern) || [];
 
-  const lines = [];
+  const lines: string[] = [];
   let currentLine = '';
   let i = 0;
 
@@ -46,23 +63,49 @@ function wrapPosterText(context, value, maxWidth, maxLines) {
   return lines;
 }
 
-function drawPosterLines(context, lines, x, y, lineHeight) {
+function drawPosterLines(
+  context: CanvasRenderingContext2D,
+  lines: string[],
+  x: number,
+  y: number,
+  lineHeight: number
+): void {
   lines.forEach((line, index) => context.fillText(line, x, y + index * lineHeight));
 }
 
-function fillRoundedRect(context, x, y, width, height, radius) {
+function fillRoundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+): void {
   context.beginPath();
   context.roundRect(x, y, width, height, radius);
   context.fill();
 }
 
-function strokeRoundedRect(context, x, y, width, height, radius) {
+function strokeRoundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+): void {
   context.beginPath();
   context.roundRect(x, y, width, height, radius);
   context.stroke();
 }
 
-function drawDiamond(context, x, y, size, color) {
+function drawDiamond(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string
+): void {
   context.save();
   context.translate(x, y);
   context.rotate(Math.PI / 4);
@@ -71,7 +114,13 @@ function drawDiamond(context, x, y, size, color) {
   context.restore();
 }
 
-function drawCornerMark(context, x, y, horizontalDirection, verticalDirection) {
+function drawCornerMark(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  horizontalDirection: number,
+  verticalDirection: number
+): void {
   context.strokeStyle = POSTER_THEME.accentBorder;
   context.lineWidth = 2;
   context.beginPath();
@@ -81,13 +130,13 @@ function drawCornerMark(context, x, y, horizontalDirection, verticalDirection) {
   context.stroke();
 }
 
-async function canvasToPngBlob(canvas) {
-  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+async function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('Canvas export returned no data');
   return blob;
 }
 
-async function loadSiteQrImage() {
+async function loadSiteQrImage(): Promise<HTMLImageElement> {
   const response = await fetch('/api/site-qr');
   if (!response.ok) throw new Error('Could not create site QR code');
   const svg = await response.text();
@@ -97,7 +146,7 @@ async function loadSiteQrImage() {
   return image;
 }
 
-export async function createWishPoster(wish, { language, t }) {
+export async function createWishPoster(wish: Wish, { language, t }: PosterOptions): Promise<PosterResult> {
   const [qrImage] = await Promise.all([
     loadSiteQrImage(),
     document.fonts?.ready
@@ -148,7 +197,7 @@ export async function createWishPoster(wish, { language, t }) {
     month: 'long',
     day: 'numeric'
   });
-  const category = t('categoryNames')[wish.category] || t('wishFallback');
+  const category = getCategoryName(wish.category, language, t('wishFallback'));
   const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
 
   drawDiamond(context, 82, 91, 13, POSTER_THEME.accent);
@@ -269,6 +318,7 @@ export async function createWishPoster(wish, { language, t }) {
     filename: `${wish.id}.png`
   };
 }
+
 const POSTER_THEME = {
   background: '#0a0a0b',
   surface: 'rgba(19, 19, 21, 0.88)',

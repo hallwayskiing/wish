@@ -1,7 +1,81 @@
-import { CATEGORY_NAMES } from '../categories.js';
+import { CATEGORY_NAMES, CategoryId } from '../categories.js';
 import { SITE_CONFIG } from '../site-config.js';
+import { Language } from './types.js';
 
-export const translations = {
+export interface TranslationDictionary {
+  pageDescription: string;
+  brand: string;
+  navWish: string;
+  navWall: string;
+  apiConfigTitle: string;
+  languageToggleLabel: string;
+  languageToggleTitle: string;
+  heroBadge: string;
+  heroTitle: string;
+  heroTitleAccent: string;
+  heroSubtitle: string;
+  categoryLabel: string;
+  filterAll: string;
+  submitWish: string;
+  wallTitle: string;
+  wallSubtitle: string;
+  searchPlaceholder: string;
+  refreshWall: string;
+  refreshWallTitle: string;
+  loadingTitle: string;
+  close: string;
+  closeModal: string;
+  inspirationTitle: string;
+  roadmapTitle: string;
+  habitsTitle: string;
+  pitfallsTitle: string;
+  firstStepTitle: string;
+  phaseLabel: string;
+  save: string;
+  apiModalTip: string;
+  apiKeyLabel: string;
+  clearApiKey: string;
+  saveConfig: string;
+  footerQuote: string;
+  categoryNames: Readonly<Record<CategoryId, string>>;
+  placeholders: Record<string, string>;
+  loadingPhrases: string[];
+  apiKeySaved: string;
+  apiKeyCleared: string;
+  generationError: string;
+  generationComplete: string;
+  beautifulWish: string;
+  wishTime: string;
+  inspirationFallback: string;
+  timelineFallback: string;
+  taskFallback: string;
+  firstStepFallback: string;
+  saving: string;
+  wishSaved: string;
+  saveError: string;
+  wallLoadError: string;
+  wallEmpty: string;
+  wishFallback: string;
+  bless: string;
+  sharePoster: string;
+  viewPlan: string;
+  blessSuccess: string;
+  blessError: string;
+  posterError: string;
+  posterPreviewTitle: string;
+  posterPreviewHint: string;
+  posterPreviewAlt: string;
+  downloadPoster: string;
+  posterDownloaded: string;
+  posterWishLabel: string;
+  posterBlessingsLabel: string;
+  posterDateLabel: string;
+  posterScanLabel: string;
+  prevPage: string;
+  nextPage: string;
+}
+
+export const translations: Record<Language, TranslationDictionary> = {
   zh: {
     pageDescription: SITE_CONFIG.description.zh,
     brand: SITE_CONFIG.brand.zh,
@@ -171,3 +245,12 @@ export const translations = {
     nextPage: 'Next ›'
   }
 };
+
+export function translate(language: Language, key: string): string {
+  const dict = translations[language];
+  if (key in dict) {
+    const val = dict[key as keyof TranslationDictionary];
+    if (typeof val === 'string') return val;
+  }
+  return key;
+}

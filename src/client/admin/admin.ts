@@ -2,56 +2,59 @@ import '../particles.js';
 import '../styles/style.css';
 import './admin.css';
 import './editor.css';
-import { CATEGORY_NAMES } from '../../categories.js';
-import { adminApi as api } from './api.js';
+import { CATEGORY_NAMES, isCategoryId } from '../../categories.js';
+import { Wish, UnpaginatedWishListResult } from '../types.js';
+import { requireElement } from '../ui.js';
+import { AdminApiError, adminApi as api } from './api.js';
 import { buildPlanForm } from './plan-editor.js';
-import { escapeHtml } from '../ui.js';
 
 const LOADING_WISHES_TEXT = '正在读取愿望...';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const loginPanel = document.getElementById('loginPanel');
-  const dashboard = document.getElementById('dashboard');
-  const loginForm = document.getElementById('loginForm');
-  const passwordInput = document.getElementById('passwordInput');
-  const loginButton = document.getElementById('loginButton');
-  const loginMessage = document.getElementById('loginMessage');
-  const logoutButton = document.getElementById('logoutButton');
-  const refreshButton = document.getElementById('refreshButton');
-  const searchInput = document.getElementById('searchInput');
-  const wishList = document.getElementById('wishList');
-  const wishCount = document.getElementById('wishCount');
-  const notice = document.getElementById('notice');
-  const emptyState = document.getElementById('emptyState');
+function initAdminDashboard(): void {
+  const elements = {
+    loginPanel: requireElement('loginPanel'),
+    dashboard: requireElement('dashboard'),
+    loginForm: requireElement<HTMLFormElement>('loginForm'),
+    passwordInput: requireElement<HTMLInputElement>('passwordInput'),
+    loginButton: requireElement<HTMLButtonElement>('loginButton'),
+    loginMessage: requireElement('loginMessage'),
+    logoutButton: requireElement<HTMLButtonElement>('logoutButton'),
+    refreshButton: requireElement<HTMLButtonElement>('refreshButton'),
+    searchInput: requireElement<HTMLInputElement>('searchInput'),
+    wishList: requireElement('wishList'),
+    wishCount: requireElement('wishCount'),
+    notice: requireElement('notice'),
+    emptyState: requireElement('emptyState')
+  };
 
   const categoryNames = CATEGORY_NAMES.zh;
 
-  let wishes = [];
-  let noticeTimer = null;
+  let wishes: Wish[] = [];
+  let noticeTimer: ReturnType<typeof setTimeout> | undefined;
 
-  function showLogin(message = '') {
-    dashboard.classList.add('hidden');
-    loginPanel.classList.remove('hidden');
-    loginMessage.textContent = message;
-    passwordInput.focus();
+  function showLogin(message = ''): void {
+    elements.dashboard.classList.add('hidden');
+    elements.loginPanel.classList.remove('hidden');
+    elements.loginMessage.textContent = message;
+    elements.passwordInput.focus();
   }
 
-  function showDashboard() {
-    loginPanel.classList.add('hidden');
-    dashboard.classList.remove('hidden');
+  function showDashboard(): void {
+    elements.loginPanel.classList.add('hidden');
+    elements.dashboard.classList.remove('hidden');
   }
 
-  function showNotice(message, isError = false) {
+  function showNotice(message: string, isError = false): void {
     clearTimeout(noticeTimer);
-    notice.textContent = message;
-    notice.classList.toggle('error', isError);
+    elements.notice.textContent = message;
+    elements.notice.classList.toggle('error', isError);
     noticeTimer = setTimeout(() => {
-      notice.textContent = '';
-      notice.classList.remove('error');
+      elements.notice.textContent = '';
+      elements.notice.classList.remove('error');
     }, 3500);
   }
 
-  function formatDate(value) {
+  function formatDate(value: string): string {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value || '未知时间';
     return date.toLocaleString('zh-CN', {
@@ -63,17 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function createField(labelText, control, extraClass = '') {
+  function createField(labelText: string, control: Node, extraClass = ''): HTMLElement {
     const field = document.createElement('div');
     field.className = `field${extraClass ? ` ${extraClass}` : ''}`;
     const label = document.createElement('span');
     label.className = 'field-label';
     label.textContent = labelText;
-    field.append(label, control);
+    field.appendChild(label);
+    field.appendChild(control);
     return field;
   }
 
-  function createButton(className, text) {
+  function createButton(className: string, text: string): HTMLButtonElement {
     const button = document.createElement('button');
     button.className = className;
     button.type = 'button';
@@ -81,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return button;
   }
 
-  async function withBusyButton(button, busyText, task) {
+  async function withBusyButton<T>(button: HTMLButtonElement, busyText: string, task: () => Promise<T>): Promise<T> {
     const originalContent = button.innerHTML;
     button.disabled = true;
     button.textContent = busyText;
@@ -93,16 +97,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function handleRequestError(error) {
-    if (error.status === 401) {
-      showLogin('登录已过期，请重新登录。');
-      return true;
+  function handleRequestError(error: unknown): boolean {
+    if (error instanceof AdminApiError) {
+      if (error.status === 401) {
+        showLogin('登录已过期，请重新登录。');
+        return true;
+      }
+      showNotice(error.message, true);
+    } else if (error instanceof Error) {
+      showNotice(error.message, true);
+    } else {
+      showNotice(String(error), true);
     }
-    showNotice(error.message, true);
     return false;
   }
 
-  function createWishCard(wish) {
+  function createWishCard(wish: Wish): HTMLElement {
     const card = document.createElement('article');
     card.className = 'wish-admin-card glass-panel';
     card.dataset.id = wish.id;
@@ -114,7 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const idText = document.createElement('span');
     idText.className = 'wish-id-tag';
     idText.textContent = wish.id;
-    meta.append(dateText, idText);
+    meta.appendChild(dateText);
+    meta.appendChild(idText);
 
     const titleInput = document.createElement('textarea');
     titleInput.className = 'wish-title-input';
@@ -146,7 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
     actions.className = 'card-actions';
     const saveButton = createButton('save-button', '保存变更');
     const deleteButton = createButton('delete-button', '删除愿望');
-    actions.append(saveButton, deleteButton);
+    actions.appendChild(saveButton);
+    actions.appendChild(deleteButton);
 
     const planEditor = document.createElement('details');
     planEditor.className = 'plan-editor';
@@ -159,13 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     const planForm = buildPlanForm(wish.aiPlan);
-    planEditor.append(planSummary, planForm.element);
+    planEditor.appendChild(planSummary);
+    planEditor.appendChild(planForm.element);
 
     saveButton.addEventListener('click', async () => {
       const aiPlan = planForm.getAiPlan();
       try {
         await withBusyButton(saveButton, '保存中...', async () => {
-          const data = await api(`/wishes/${encodeURIComponent(wish.id)}`, {
+          const data = await api<{ success: boolean; wish: Wish }>(`/wishes/${encodeURIComponent(wish.id)}`, {
             method: 'PUT',
             body: JSON.stringify({
               title: titleInput.value,
@@ -180,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
           blessingsInput.value = String(data.wish.blessings);
         });
         showNotice('愿望及 AI 蓝图填空已成功保存！');
-      } catch (error) {
+      } catch (error: unknown) {
         handleRequestError(error);
       }
     });
@@ -189,84 +202,91 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!window.confirm(`确认永久删除这条愿望？\n\n“${titleInput.value}”`)) return;
       try {
         await withBusyButton(deleteButton, '删除中...', () =>
-          api(`/wishes/${encodeURIComponent(wish.id)}`, { method: 'DELETE' })
+          api<{ success: boolean }>(`/wishes/${encodeURIComponent(wish.id)}`, { method: 'DELETE' })
         );
         wishes = wishes.filter(item => item.id !== wish.id);
         renderWishes();
         showNotice('愿望已删除。');
-      } catch (error) {
+      } catch (error: unknown) {
         handleRequestError(error);
       }
     });
 
-    card.append(meta, titleField, categoryField, blessingsField, actions, planEditor);
+    card.appendChild(meta);
+    card.appendChild(titleField);
+    card.appendChild(categoryField);
+    card.appendChild(blessingsField);
+    card.appendChild(actions);
+    card.appendChild(planEditor);
     return card;
   }
 
-  function renderWishes() {
-    const term = searchInput.value.trim().toLocaleLowerCase('zh-CN');
+  function renderWishes(): void {
+    const term = elements.searchInput.value.trim().toLocaleLowerCase('zh-CN');
     const filtered = term
       ? wishes.filter(wish => {
-          const category = categoryNames[wish.category] || wish.categoryName || '';
+          const category = isCategoryId(wish.category) ? categoryNames[wish.category] : wish.categoryName || '';
           return `${wish.title} ${category}`.toLocaleLowerCase('zh-CN').includes(term);
         })
       : wishes;
 
-    wishList.replaceChildren(...filtered.map(createWishCard));
-    wishCount.textContent = `共 ${wishes.length} 条愿望${term ? `，当前显示 ${filtered.length} 条` : ''}`;
-    emptyState.classList.toggle('hidden', filtered.length !== 0);
+    elements.wishList.replaceChildren(...filtered.map(createWishCard));
+    elements.wishCount.textContent = `共 ${wishes.length} 条愿望${term ? `，当前显示 ${filtered.length} 条` : ''}`;
+    elements.emptyState.classList.toggle('hidden', filtered.length !== 0);
   }
 
-  async function loadWishes() {
-    refreshButton.disabled = true;
-    wishCount.textContent = LOADING_WISHES_TEXT;
+  async function loadWishes(): Promise<void> {
+    elements.refreshButton.disabled = true;
+    elements.wishCount.textContent = LOADING_WISHES_TEXT;
     try {
-      const data = await api('/wishes');
+      const data = await api<UnpaginatedWishListResult>('/wishes');
       wishes = data.wishes || [];
       renderWishes();
-    } catch (error) {
+    } catch (error: unknown) {
       if (handleRequestError(error)) return;
-      wishCount.textContent = '读取失败';
+      elements.wishCount.textContent = '读取失败';
     } finally {
-      refreshButton.disabled = false;
+      elements.refreshButton.disabled = false;
     }
   }
 
-  loginForm.addEventListener('submit', async event => {
+  elements.loginForm.addEventListener('submit', async (event: SubmitEvent) => {
     event.preventDefault();
-    loginMessage.textContent = '';
+    elements.loginMessage.textContent = '';
     try {
-      await withBusyButton(loginButton, '验证中...', () =>
-        api('/login', {
+      await withBusyButton(elements.loginButton, '验证中...', () =>
+        api<{ success: boolean }>('/login', {
           method: 'POST',
-          body: JSON.stringify({ password: passwordInput.value })
+          body: JSON.stringify({ password: elements.passwordInput.value })
         })
       );
-      passwordInput.value = '';
+      elements.passwordInput.value = '';
       showDashboard();
       await loadWishes();
-    } catch (error) {
-      loginMessage.textContent = error.message;
-      passwordInput.select();
+    } catch (error: unknown) {
+      elements.loginMessage.textContent = error instanceof Error ? error.message : '登录失败';
+      elements.passwordInput.select();
     }
   });
 
-  logoutButton.addEventListener('click', async () => {
+  elements.logoutButton.addEventListener('click', async () => {
     try {
-      await api('/logout', { method: 'POST' });
+      await api<{ success: boolean }>('/logout', { method: 'POST' });
     } finally {
       wishes = [];
       showLogin();
     }
   });
 
-  refreshButton.addEventListener('click', loadWishes);
-  searchInput.addEventListener('input', renderWishes);
+  elements.refreshButton.addEventListener('click', loadWishes);
+  elements.searchInput.addEventListener('input', renderWishes);
 
-  api('/session')
+  api<{ authenticated: boolean }>('/session')
     .then(() => {
       showDashboard();
       return loadWishes();
     })
     .catch(() => showLogin());
-});
+}
+
+initAdminDashboard();

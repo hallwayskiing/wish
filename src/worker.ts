@@ -1,7 +1,8 @@
 import { handleApiRequest } from './routes.js';
+import { Env } from './types.js';
 
 export default {
-  async fetch(request, env) {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith('/api/')) {
@@ -9,8 +10,10 @@ export default {
     }
     if (url.pathname === '/admin') {
       url.pathname = '/admin/index.html';
-      return env.ASSETS.fetch(new Request(url, request));
+      if (!env.ASSETS) throw new Error('ASSETS binding unavailable');
+      return env.ASSETS.fetch(new Request(url.href, request));
     }
+    if (!env.ASSETS) throw new Error('ASSETS binding unavailable');
     return env.ASSETS.fetch(request);
   }
-};
+} satisfies ExportedHandler<Env>;

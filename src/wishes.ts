@@ -1,32 +1,37 @@
-import { CATEGORY_NAMES } from './categories.js';
+import { CATEGORY_NAMES, normalizeCategory } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { generatePlan } from './model.js';
 import { serverMessage } from './server-messages.js';
+import { Env, Wish, WishListResult } from './types.js';
 import {
   bindStatement,
+  MAX_PLAN_LENGTH,
   parseWishRow,
+  RawWishRow,
   serializePlan,
   VALID_CATEGORIES,
   WISH_FIELDS
 } from './wish-data.js';
 
-const MAX_PLAN_LENGTH = 100_000;
 const WISH_ID_PATTERN = /^wish_[a-zA-Z0-9_-]+$/;
 
-function normalizeLanguage(language) {
+function normalizeLanguage(language?: string | null): 'zh' | 'en' {
   return language === 'en' ? 'en' : 'zh';
 }
 
-function normalizeCategory(category) {
-  return VALID_CATEGORIES.has(category) ? category : 'growth';
-}
-
-function createWishId() {
+function createWishId(): string {
   return `wish_${Date.now()}_${crypto.randomUUID().slice(0, 5)}`;
 }
 
-export async function createWishDraft(request) {
-  const body = await parseJsonBody(request);
+interface CreateWishDraftBody {
+  wish?: string;
+  category?: string;
+  customApiKey?: string;
+  language?: string;
+}
+
+export async function createWishDraft(request: Request): Promise<Response> {
+  const body = await parseJsonBody<CreateWishDraftBody>(request);
   const language = normalizeLanguage(body?.language);
   const title = typeof body?.wish === 'string' ? body.wish.trim().slice(0, 300) : '';
 
@@ -55,14 +60,20 @@ export async function createWishDraft(request) {
         aiPlan
       }
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Wish generation error:', error);
-    return json({ error: error.message || serverMessage(language, 'generationFailed') }, 500);
+    const message = error instanceof Error ? error.message : '';
+    return json({ error: message || serverMessage(language, 'generationFailed') }, 500);
   }
 }
 
-export async function saveWish(request, env) {
-  const body = await parseJsonBody(request);
+interface SaveWishBody {
+  wish?: Partial<Wish>;
+  language?: string;
+}
+
+export async function saveWish(request: Request, env: Env): Promise<Response> {
+  const body = await parseJsonBody<SaveWishBody>(request);
   const language = normalizeLanguage(body?.language);
   const draft = body?.wish;
 
@@ -84,8 +95,8 @@ export async function saveWish(request, env) {
   }
 
   const category = normalizeCategory(draft.category);
-  const parsedDate = Date.parse(draft.createdAt);
-  const savedWish = {
+  const parsedDate = draft.createdAt ? Date.parse(draft.createdAt) : NaN;
+  const savedWish: Wish = {
     id: typeof draft.id === 'string' && WISH_ID_PATTERN.test(draft.id)
       ? draft.id
       : createWishId(),
@@ -94,7 +105,7 @@ export async function saveWish(request, env) {
     categoryName: CATEGORY_NAMES[language][category],
     createdAt: Number.isNaN(parsedDate) ? new Date().toISOString() : new Date(parsedDate).toISOString(),
     blessings: 0,
-    aiPlan: draft.aiPlan
+    aiPlan: draft.aiPlan ?? {}
   };
 
   try {
@@ -112,26 +123,27 @@ export async function saveWish(request, env) {
     ).run();
 
     return json({ success: true, wish: savedWish }, 201);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Wish save error:', error);
-    if (/unique|constraint/i.test(error.message || '')) {
+    const message = error instanceof Error ? error.message : '';
+    if (/unique|constraint/i.test(message)) {
       return json({ error: serverMessage(language, 'alreadySaved') }, 409);
     }
     return json({ error: serverMessage(language, 'saveFailed') }, 500);
   }
 }
 
-export async function listWishes(url, env) {
+export async function listWishes(url: URL, env: Env): Promise<Response> {
   const category = url.searchParams.get('category');
   const search = url.searchParams.get('search')?.trim();
-  const rawPage = Number.parseInt(url.searchParams.get('page'), 10);
-  const rawLimit = Number.parseInt(url.searchParams.get('limit'), 10);
+  const rawPage = Number.parseInt(url.searchParams.get('page') || '', 10);
+  const rawLimit = Number.parseInt(url.searchParams.get('limit') || '', 10);
 
   const isPaginated = Number.isInteger(rawPage) && rawPage > 0;
   const limit = Number.isInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 100) : 6;
   const page = isPaginated ? rawPage : 1;
-  const conditions = [];
-  const params = [];
+  const conditions: string[] = [];
+  const params: (string | number)[] = [];
 
   if (category && category !== 'all' && VALID_CATEGORIES.has(category)) {
     conditions.push('category = ?');
@@ -146,39 +158,49 @@ export async function listWishes(url, env) {
   const where = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
 
   try {
-    let total;
-    let totalPages;
+    let total = 0;
+    let totalPages = 1;
     if (isPaginated) {
       const count = await bindStatement(
         env.DB.prepare(`SELECT COUNT(*) AS total FROM wishes${where}`),
         params
-      ).first();
+      ).first<{ total: number }>();
       total = Number(count?.total) || 0;
       totalPages = Math.max(1, Math.ceil(total / limit));
     }
 
     const pagination = isPaginated ? ' LIMIT ? OFFSET ?' : '';
-    const queryParams = isPaginated
+    const queryParams: (string | number)[] = isPaginated
       ? [...params, limit, (page - 1) * limit]
       : params;
     const result = await bindStatement(env.DB.prepare(`
       SELECT ${WISH_FIELDS}
       FROM wishes${where}
       ORDER BY createdAt DESC${pagination}
-    `), queryParams).all();
-    const response = { wishes: (result.results || []).map(parseWishRow) };
+    `), queryParams).all<RawWishRow>();
+
+    const wishList: Wish[] = (result.results || [])
+      .map(parseWishRow)
+      .filter((item): item is Wish => item !== null);
 
     if (isPaginated) {
-      Object.assign(response, { total, page, limit, totalPages });
+      const response: WishListResult = {
+        wishes: wishList,
+        total,
+        page,
+        limit,
+        totalPages
+      };
+      return json(response);
     }
-    return json(response);
+    return json({ wishes: wishList });
   } catch (error) {
     console.error('Wish list error:', error);
     return json({ error: serverMessage('zh', 'listFailed') }, 500);
   }
 }
 
-export async function blessWish(id, env) {
+export async function blessWish(id: string, env: Env): Promise<Response> {
   try {
     const update = await env.DB.prepare(
       'UPDATE wishes SET blessings = blessings + 1 WHERE id = ?'
@@ -190,8 +212,8 @@ export async function blessWish(id, env) {
 
     const row = await env.DB.prepare(
       'SELECT blessings FROM wishes WHERE id = ?'
-    ).bind(id).first();
-    return json({ success: true, blessings: row.blessings });
+    ).bind(id).first<{ blessings: number }>();
+    return json({ success: true, blessings: row?.blessings || 0 });
   } catch (error) {
     console.error('Wish blessing error:', error);
     return json({ error: serverMessage('zh', 'blessFailed') }, 500);

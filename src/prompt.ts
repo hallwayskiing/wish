@@ -1,6 +1,6 @@
-import { CATEGORY_NAMES } from './categories.js';
+import { CATEGORY_NAMES, CategoryId } from './categories.js';
 
-export function buildPrompt(wish, category, language) {
+export function buildPrompt(wish: string, category: CategoryId, language: string): string {
   if (language === 'en') {
     return `
 You are a warm, insightful, and highly practical wish-realization mentor and life-planning expert.

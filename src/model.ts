@@ -1,18 +1,48 @@
+import { CategoryId } from './categories.js';
 import { buildPrompt } from './prompt.js';
 import { serverMessage } from './server-messages.js';
+import { AIPlan } from './types.js';
+import { sanitizeAiPlan } from './wish-data.js';
 
 const GEMINI_MODEL = 'gemini-flash-lite-latest';
 
-function extractText(payload) {
-  return payload?.candidates?.[0]?.content?.parts
+interface GeneratePlanOptions {
+  wish: string;
+  category: CategoryId;
+  apiKey?: string;
+  language?: string;
+}
+
+interface GeminiPart {
+  text?: string;
+}
+
+interface GeminiCandidate {
+  content?: {
+    parts?: GeminiPart[];
+  };
+}
+
+interface GeminiErrorPayload {
+  error?: {
+    message?: string;
+  };
+}
+
+type GeminiResponsePayload = GeminiErrorPayload & {
+  candidates?: GeminiCandidate[];
+};
+
+function extractText(payload: GeminiResponsePayload): string {
+  return payload.candidates?.[0]?.content?.parts
     ?.map(part => part.text || '')
     .join('')
     .replace(/```json/gi, '')
     .replace(/```/g, '')
-    .trim();
+    .trim() || '';
 }
 
-export async function generatePlan({ wish, category, apiKey, language }) {
+export async function generatePlan({ wish, category, apiKey, language = 'zh' }: GeneratePlanOptions): Promise<AIPlan> {
   if (!apiKey) {
     throw new Error(serverMessage(language, 'noApiKey'));
   }
@@ -22,7 +52,7 @@ export async function generatePlan({ wish, category, apiKey, language }) {
   );
   endpoint.searchParams.set('key', apiKey);
 
-  const response = await fetch(endpoint, {
+  const response = await fetch(endpoint.href, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -30,13 +60,13 @@ export async function generatePlan({ wish, category, apiKey, language }) {
       generationConfig: { responseMimeType: 'application/json' }
     })
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as GeminiResponsePayload;
 
   if (!response.ok) {
     throw new Error(serverMessage(
       language,
       'modelRequestFailed',
-      payload?.error?.message || `HTTP ${response.status}`
+      payload.error?.message || `HTTP ${response.status}`
     ));
   }
 
@@ -46,7 +76,8 @@ export async function generatePlan({ wish, category, apiKey, language }) {
   }
 
   try {
-    return JSON.parse(responseText);
+    const rawParsed: unknown = JSON.parse(responseText);
+    return sanitizeAiPlan(rawParsed);
   } catch {
     throw new Error(serverMessage(language, 'invalidModelJson'));
   }

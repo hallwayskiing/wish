@@ -1,33 +1,48 @@
-function wrapPosterText(context, value, maxWidth, maxLines, language) {
+function wrapPosterText(context, value, maxWidth, maxLines) {
   const text = String(value || '').replace(/\s+/g, ' ').trim();
   if (!text) return [];
 
-  const tokens = language === 'en'
-    ? text.split(/(\s+)/).filter(Boolean)
-    : Array.from(text);
-  const lines = [];
-  let line = '';
-  let tokenIndex = 0;
+  // Tokenize by CJK characters, whitespace, and non-CJK word chunks (English words/punctuation)
+  const pattern = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]|\s+|[^\s\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+/g;
+  const tokens = text.match(pattern) || [];
 
-  for (; tokenIndex < tokens.length; tokenIndex += 1) {
-    const candidate = `${line}${tokens[tokenIndex]}`;
-    if (!line || context.measureText(candidate).width <= maxWidth) {
-      line = candidate;
+  const lines = [];
+  let currentLine = '';
+  let i = 0;
+
+  for (; i < tokens.length; i += 1) {
+    const token = tokens[i];
+
+    if (!currentLine && /^\s+$/.test(token)) {
       continue;
     }
-    lines.push(line.trim());
-    line = tokens[tokenIndex].trimStart();
-    if (lines.length === maxLines) break;
+
+    const candidate = currentLine + token;
+    if (context.measureText(candidate).width <= maxWidth) {
+      currentLine = candidate;
+    } else {
+      if (currentLine.trim()) {
+        lines.push(currentLine.trim());
+      }
+      if (lines.length === maxLines) {
+        break;
+      }
+      currentLine = /^\s+$/.test(token) ? '' : token;
+    }
   }
 
-  if (lines.length < maxLines && line) lines.push(line.trim());
-  if (tokenIndex < tokens.length && lines.length) {
-    let finalLine = lines.at(-1);
-    while (finalLine && context.measureText(`${finalLine}…`).width > maxWidth) {
-      finalLine = finalLine.slice(0, -1).trimEnd();
-    }
-    lines[lines.length - 1] = `${finalLine}…`;
+  if (lines.length < maxLines && currentLine.trim()) {
+    lines.push(currentLine.trim());
   }
+
+  if (lines.length === maxLines && (currentLine.trim() || i < tokens.length)) {
+    let lastLine = lines[lines.length - 1];
+    while (lastLine.length > 0 && context.measureText(`${lastLine}…`).width > maxWidth) {
+      lastLine = lastLine.slice(0, -1).trimEnd();
+    }
+    lines[lines.length - 1] = `${lastLine}…`;
+  }
+
   return lines;
 }
 
@@ -186,7 +201,7 @@ export async function createWishPoster(wish, { language, t }) {
   const titleX = 80;
   context.fillStyle = POSTER_THEME.textStrong;
   context.font = `600 58px ${fontFamily}`;
-  const titleLines = wrapPosterText(context, wish.title, 920, 4, language);
+  const titleLines = wrapPosterText(context, wish.title, 920, 4);
   drawPosterLines(context, titleLines, titleX, titleY, titleLineHeight);
 
   context.fillStyle = POSTER_THEME.surfaceSoft;
@@ -205,7 +220,7 @@ export async function createWishPoster(wish, { language, t }) {
   context.font = `400 29px ${fontFamily}`;
   drawPosterLines(
     context,
-    wrapPosterText(context, inspiration, 820, 5, language),
+    wrapPosterText(context, inspiration, 820, 5),
     98,
     918,
     43

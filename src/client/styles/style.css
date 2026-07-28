@@ -185,20 +185,20 @@ body {
   font-weight: 500;
   padding: 0.4rem 0.85rem;
   border-radius: var(--radius-pill);
+  outline: none;
   transition: color var(--duration-fast) var(--ease-in-out),
               background var(--duration-fast) var(--ease-in-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .nav-item:hover {
-    color: var(--text-primary);
+  .nav-item:hover:not(.active) {
+    color: var(--text-secondary);
+    background: transparent;
   }
 }
 
 .nav-item:focus-visible {
-  color: var(--text-primary);
-  outline: 2px solid var(--border-accent);
-  outline-offset: 2px;
+  outline: none;
 }
 
 .nav-item.active {

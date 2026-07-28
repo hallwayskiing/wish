@@ -124,9 +124,9 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  gap: 0.35rem;
-  min-height: 38px;
-  padding: 0.35rem 0.85rem;
+  gap: 0.25rem;
+  min-height: 36px;
+  padding: 0.3rem 0.65rem;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   background: var(--bg-control);
@@ -134,25 +134,40 @@
   font: 500 0.82rem var(--font-sans);
   white-space: nowrap;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-in-out);
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              background var(--duration-fast) var(--ease-in-out),
+              color var(--duration-fast) var(--ease-in-out);
 }
 
-.wall-refresh-btn:hover:not(:disabled) {
+.wall-refresh-btn .refresh-icon {
+  display: inline-block;
+  transform-origin: center;
+  line-height: 1;
+}
+
+.wall-refresh-btn:hover:not(:disabled):not(.loading) {
   border-color: var(--border-medium);
   color: var(--accent);
   background: var(--accent-glow);
 }
 
-.wall-refresh-btn:disabled {
-  opacity: 0.65;
+.wall-refresh-btn:disabled,
+.wall-refresh-btn.loading {
+  opacity: 0.75;
   cursor: wait;
+  pointer-events: none;
+  background: var(--bg-control);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
 }
 
 .wall-refresh-btn.loading .refresh-icon {
   animation: refreshSpin 0.75s linear infinite;
+  color: var(--accent);
 }
 
 @keyframes refreshSpin {
+  from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
@@ -287,45 +302,63 @@
 }
 
 .btn-bless {
-  background: transparent;
-  border: 1px solid var(--border-medium);
-  color: var(--text-secondary);
-  padding: 0.35rem 0.8rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  transition: all var(--duration-fast) var(--ease-in-out);
+  gap: 0.25rem;
+  min-height: 36px;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--bg-control);
+  color: var(--text-secondary);
+  font: 500 0.82rem var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              background var(--duration-fast) var(--ease-in-out),
+              color var(--duration-fast) var(--ease-in-out);
 }
 
-.btn-bless:hover:not(:disabled) {
-  background: var(--accent-glow);
-  border-color: var(--border-accent);
-  color: var(--accent);
-}
-
-.btn-bless:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.btn-bless .bless-label {
-  display: inline-block;
-}
-
-.btn-bless.loading .bless-label {
-  animation: blessSpin 0.75s linear infinite;
-  font-size: 0.95rem;
+.btn-bless .bless-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  transform-origin: center;
   line-height: 1;
 }
 
-.btn-bless.loading .bless-count {
-  display: none;
+.btn-bless .bless-count {
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  min-width: 1.2em;
+  text-align: left;
+}
+
+.btn-bless:hover:not(:disabled):not(.loading) {
+  border-color: var(--border-medium);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.btn-bless:disabled,
+.btn-bless.loading {
+  opacity: 0.75;
+  cursor: wait;
+  pointer-events: none;
+  background: var(--bg-control);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.btn-bless.loading .bless-icon {
+  animation: refreshSpin 0.75s linear infinite;
+  color: var(--accent);
 }
 
 .btn-bless.blessed {

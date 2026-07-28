@@ -73,6 +73,7 @@ export function createWishWall({
         </div>
         <div class="card-bottom">
           <button class="btn-bless" data-wish-id="${escapeHtml(wish.id)}">
+            <span class="bless-icon" aria-hidden="true">✨</span>
             <span class="bless-label">${escapeHtml(t('bless'))}</span>
             <span class="bless-count">${wish.blessings || 0}</span>
           </button>
@@ -191,12 +192,13 @@ export function createWishWall({
     }
     if (!button.classList.contains('btn-bless') || button.disabled) return;
 
-    const label = button.querySelector('.bless-label');
-    const originalText = label.textContent;
-    button.style.minWidth = `${button.offsetWidth}px`;
-    label.textContent = '↻';
+    const iconEl = button.querySelector('.bless-icon');
+    const originalIcon = iconEl ? iconEl.textContent : '✨';
+
     button.disabled = true;
     button.classList.add('loading');
+    if (iconEl) iconEl.textContent = '↻';
+
     try {
       const result = await api.blessWish(wish.id);
       wish.blessings = result.blessings;
@@ -206,10 +208,9 @@ export function createWishWall({
     } catch {
       showToast(t('blessError'));
     } finally {
-      label.textContent = originalText;
+      if (iconEl) iconEl.textContent = originalIcon;
       button.classList.remove('loading');
       button.disabled = false;
-      button.style.minWidth = '';
     }
   });
 

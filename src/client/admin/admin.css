@@ -258,7 +258,7 @@ body {
 
 .wish-admin-card {
   display: grid;
-  grid-template-columns: minmax(280px, 1.2fr) 180px 140px auto;
+  grid-template-columns: minmax(240px, 1.2fr) 150px 120px 130px auto;
   align-items: flex-start;
   gap: 18px;
   padding: var(--space-6);
@@ -318,7 +318,8 @@ body {
 }
 
 .wish-category-select,
-.wish-blessings-input {
+.wish-blessings-input,
+.wish-status-select {
   min-height: 44px;
   padding: 0 12px;
   border: 1px solid var(--border-soft);
@@ -331,7 +332,8 @@ body {
 }
 
 .wish-category-select:focus,
-.wish-blessings-input:focus {
+.wish-blessings-input:focus,
+.wish-status-select:focus {
   outline: none;
   border-color: var(--border-accent-strong);
   box-shadow: var(--shadow-focus);

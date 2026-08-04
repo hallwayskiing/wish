@@ -166,6 +166,79 @@
   color: var(--accent);
 }
 
+/* Completed Filter Checkbox */
+.completed-filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  padding: 0.3rem 0.75rem;
+  min-height: 36px;
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--duration-fast) var(--ease-in-out);
+  white-space: nowrap;
+}
+
+.completed-filter-label:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+.completed-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--border-medium);
+  border-radius: 4px;
+  background: var(--bg-input);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--duration-fast) var(--ease-in-out);
+  outline: none;
+  margin: 0;
+}
+
+.completed-checkbox:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.completed-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #0a0a0b;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* Completed Wish Card Styling */
+.card-completed-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #6ee7b7;
+  letter-spacing: 0.02em;
+}
+
+.wish-completed-card {
+  border-color: rgba(52, 211, 153, 0.3);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, rgba(13, 14, 18, 0.5) 100%);
+}
+
 @keyframes refreshSpin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

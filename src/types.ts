@@ -33,6 +33,8 @@ export interface Wish {
   createdAt: string;
   blessings: number;
   aiPlan: AIPlan;
+  status?: 'active' | 'completed';
+  completedAt?: string | null;
 }
 
 export interface WishInput {

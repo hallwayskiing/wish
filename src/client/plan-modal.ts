@@ -36,6 +36,7 @@ export function createPlanModal({ api, getLanguage, onSaved, showToast, t }: Cre
   const firstStep = requireElement('planFirstStep');
   const footer = requireElement('planModalFooter');
   const saveButton = requireElement<HTMLButtonElement>('saveWishBtn');
+  const completeButton = requireElement<HTMLButtonElement>('completeWishBtn');
 
   let currentWish: Wish | null = null;
   let isDraft = false;
@@ -58,7 +59,20 @@ export function createPlanModal({ api, getLanguage, onSaved, showToast, t }: Cre
   function render(): void {
     if (!currentWish) return;
     const plan = currentWish.aiPlan || {};
-    footer.classList.toggle('hidden', !isDraft);
+    footer.classList.remove('hidden');
+    saveButton.classList.toggle('hidden', !isDraft);
+    completeButton.classList.toggle('hidden', isDraft);
+
+    if (!isDraft) {
+      if (currentWish.status === 'completed') {
+        completeButton.disabled = true;
+        completeButton.textContent = t('alreadyCompleted');
+      } else {
+        completeButton.disabled = false;
+        completeButton.textContent = t('completeWish');
+      }
+    }
+
     categoryBadge.textContent = getCategoryName(currentWish.category, getLanguage(), t('beautifulWish'));
     wishTitle.textContent = `“${currentWish.title}”`;
 
@@ -125,6 +139,24 @@ export function createPlanModal({ api, getLanguage, onSaved, showToast, t }: Cre
     } finally {
       saveButton.disabled = false;
       saveButton.textContent = t('save');
+    }
+  });
+
+  completeButton.addEventListener('click', async () => {
+    if (isDraft || !currentWish) return;
+    completeButton.disabled = true;
+    completeButton.textContent = t('completingWish');
+    try {
+      await api.completeWish(currentWish.id);
+      showToast(t('wishCompleted'));
+      close();
+      await onSaved();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '';
+      showToast(`⚠️ ${message || t('completeError')}`);
+    } finally {
+      completeButton.disabled = false;
+      completeButton.textContent = t('completeWish');
     }
   });
 

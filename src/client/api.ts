@@ -38,15 +38,19 @@ export const WishAPI = {
     return data.wish;
   },
 
-  getWishes: (category = 'all', search = '', page = 1, limit = 6, signal?: AbortSignal): Promise<WishListResult> => {
+  getWishes: (category = 'all', search = '', page?: number, limit?: number, status = 'all', signal?: AbortSignal): Promise<WishListResult> => {
     const params = new URLSearchParams();
     if (category !== 'all') params.set('category', category);
     if (search) params.set('search', search);
-    params.set('page', String(page));
-    params.set('limit', String(limit));
+    if (page !== undefined) params.set('page', String(page));
+    if (limit !== undefined) params.set('limit', String(limit));
+    if (status) params.set('status', status);
     return apiFetch<WishListResult>(`/wishes?${params}`, { signal });
   },
 
   blessWish: (id: string): Promise<{ success: boolean; blessings: number }> =>
-    apiFetch<{ success: boolean; blessings: number }>(`/wishes/${encodeURIComponent(id)}/bless`, { method: 'POST' })
+    apiFetch<{ success: boolean; blessings: number }>(`/wishes/${encodeURIComponent(id)}/bless`, { method: 'POST' }),
+
+  completeWish: (id: string): Promise<{ success: boolean }> =>
+    apiFetch<{ success: boolean }>(`/wishes/${encodeURIComponent(id)}/complete`, { method: 'POST' })
 };

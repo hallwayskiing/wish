@@ -1,7 +1,7 @@
 import { CATEGORY_IDS } from './categories.js';
 import { Wish, AIPlan, AIPlanPhase } from './types.js';
 
-export const WISH_FIELDS = 'id, title, category, categoryName, createdAt, blessings, aiPlan';
+export const WISH_FIELDS = 'id, title, category, categoryName, createdAt, blessings, aiPlan, status, completedAt';
 export const VALID_CATEGORIES: Set<string> = new Set(CATEGORY_IDS);
 export const MAX_PLAN_LENGTH = 100_000;
 
@@ -13,6 +13,8 @@ export interface RawWishRow {
   createdAt: string;
   blessings: number;
   aiPlan: string;
+  status?: string;
+  completedAt?: string;
 }
 
 export function sanitizeAiPlan(obj: unknown): AIPlan {
@@ -78,7 +80,9 @@ export function parseWishRow(row: RawWishRow | Record<string, unknown> | null | 
     categoryName: String(raw.categoryName || ''),
     createdAt: String(raw.createdAt || ''),
     blessings: Number(raw.blessings) || 0,
-    aiPlan: parseAiPlanJson(raw.aiPlan)
+    aiPlan: parseAiPlanJson(raw.aiPlan),
+    status: raw.status === 'completed' ? 'completed' : 'active',
+    completedAt: typeof raw.completedAt === 'string' ? raw.completedAt : undefined
   };
 }
 

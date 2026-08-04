@@ -4,10 +4,12 @@ import { json } from './http.js';
 import { siteQrCode } from './qr.js';
 import { serverMessage } from './server-messages.js';
 import { Env } from './types.js';
-import { blessWish, createWishDraft, listWishes, saveWish } from './wishes.js';
+import { blessWish, completeWish, createWishDraft, listWishes, saveWish } from './wishes.js';
 
 const ADMIN_WISH_ROUTE = /^\/api\/admin\/wishes\/([^/]+)$/;
 const BLESS_WISH_ROUTE = /^\/api\/wishes\/([^/]+)\/bless$/;
+const COMPLETE_WISH_ROUTE = /^\/api\/wishes\/([^/]+)\/complete$/;
+
 
 function routeId(pathname: string, pattern: RegExp): string | null {
   const match = pathname.match(pattern);
@@ -36,6 +38,9 @@ async function handleAdminRequest(request: Request, env: Env, url: URL): Promise
     return json({ authenticated: true });
   }
   if (request.method === 'GET' && url.pathname === '/api/admin/wishes') {
+    if (!url.searchParams.has('status')) {
+      url.searchParams.set('status', 'all');
+    }
     return listWishes(url, env);
   }
 
@@ -72,5 +77,12 @@ export async function handleApiRequest(request: Request, env: Env, url = new URL
   if (wishId && request.method === 'POST') {
     return blessWish(wishId, env);
   }
+
+  const completeId = routeId(url.pathname, COMPLETE_WISH_ROUTE);
+  if (completeId && request.method === 'POST') {
+    return completeWish(completeId, env);
+  }
+
+
   return json({ error: serverMessage('zh', 'routeNotFound') }, 404);
 }

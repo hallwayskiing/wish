@@ -153,6 +153,20 @@ function initAdminDashboard(): void {
     blessingsInput.value = String(wish.blessings ?? 0);
     const blessingsField = createField('助愿能量数', blessingsInput);
 
+    const statusSelect = document.createElement('select');
+    statusSelect.className = 'wish-status-select';
+    const activeOption = document.createElement('option');
+    activeOption.value = 'active';
+    activeOption.textContent = '🌟 进行中';
+    activeOption.selected = wish.status !== 'completed';
+    const completedOption = document.createElement('option');
+    completedOption.value = 'completed';
+    completedOption.textContent = '🎉 已完成';
+    completedOption.selected = wish.status === 'completed';
+    statusSelect.appendChild(activeOption);
+    statusSelect.appendChild(completedOption);
+    const statusField = createField('心愿状态', statusSelect);
+
     const actions = document.createElement('div');
     actions.className = 'card-actions';
     const saveButton = createButton('save-button', '保存变更');
@@ -184,6 +198,7 @@ function initAdminDashboard(): void {
               title: titleInput.value,
               category: categorySelect.value,
               blessings: Number(blessingsInput.value),
+              status: statusSelect.value,
               aiPlan
             })
           });
@@ -191,6 +206,7 @@ function initAdminDashboard(): void {
           if (index !== -1) wishes[index] = data.wish;
           titleInput.value = data.wish.title;
           blessingsInput.value = String(data.wish.blessings);
+          statusSelect.value = data.wish.status || 'active';
         });
         showNotice('愿望及 AI 蓝图填空已成功保存！');
       } catch (error: unknown) {
@@ -216,6 +232,7 @@ function initAdminDashboard(): void {
     card.appendChild(titleField);
     card.appendChild(categoryField);
     card.appendChild(blessingsField);
+    card.appendChild(statusField);
     card.appendChild(actions);
     card.appendChild(planEditor);
     return card;

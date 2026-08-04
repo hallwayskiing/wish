@@ -8,6 +8,7 @@ interface UpdateAdminWishBody {
   title?: string;
   category?: string;
   blessings?: number;
+  status?: string;
   aiPlan?: AIPlan;
 }
 
@@ -16,6 +17,8 @@ export async function updateAdminWish(id: string, request: Request, env: Env): P
   const title = typeof body?.title === 'string' ? body.title.trim().slice(0, 300) : '';
   const category = typeof body?.category === 'string' ? body.category : '';
   const blessings = Number(body?.blessings);
+  const status = body?.status === 'completed' ? 'completed' : 'active';
+  const now = new Date().toISOString();
   const serializedPlan = serializePlan(body?.aiPlan);
 
   if (!title) return json({ error: serverMessage('zh', 'emptyTitle') }, 400);
@@ -33,13 +36,18 @@ export async function updateAdminWish(id: string, request: Request, env: Env): P
   try {
     const update = await env.DB.prepare(`
       UPDATE wishes
-      SET title = ?, category = ?, categoryName = ?, blessings = ?, aiPlan = ?
+      SET title = ?, category = ?, categoryName = ?, blessings = ?, status = ?,
+          completedAt = CASE WHEN ? = 'completed' THEN COALESCE(completedAt, ?) ELSE NULL END,
+          aiPlan = ?
       WHERE id = ?
     `).bind(
       title,
       category,
       CATEGORY_NAMES.zh[category],
       blessings,
+      status,
+      status,
+      now,
       serializedPlan,
       id
     ).run();

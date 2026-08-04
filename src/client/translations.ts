@@ -73,6 +73,13 @@ export interface TranslationDictionary {
   posterScanLabel: string;
   prevPage: string;
   nextPage: string;
+  completeWish: string;
+  completingWish: string;
+  wishCompleted: string;
+  completeError: string;
+  showCompleted: string;
+  completedBadge: string;
+  alreadyCompleted: string;
 }
 
 export const translations: Record<Language, TranslationDictionary> = {
@@ -158,7 +165,14 @@ export const translations: Record<Language, TranslationDictionary> = {
     posterDateLabel: '许愿日期',
     posterScanLabel: '扫码进入许愿阁',
     prevPage: '‹ 上一页',
-    nextPage: '下一页 ›'
+    nextPage: '下一页 ›',
+    completeWish: '标记为已完成',
+    completingWish: '处理中...',
+    wishCompleted: '🎉 心愿已顺利完成！',
+    completeError: '完成心愿失败，请重试',
+    showCompleted: '查看已完成',
+    completedBadge: '已完成',
+    alreadyCompleted: '✓ 心愿已完成'
   },
   en: {
     pageDescription: SITE_CONFIG.description.en,
@@ -242,7 +256,14 @@ export const translations: Record<Language, TranslationDictionary> = {
     posterDateLabel: 'Wish Date',
     posterScanLabel: 'Scan to make a wish',
     prevPage: '‹ Prev',
-    nextPage: 'Next ›'
+    nextPage: 'Next ›',
+    completeWish: 'Mark as Completed',
+    completingWish: 'Processing...',
+    wishCompleted: '🎉 Congratulations! Wish completed!',
+    completeError: 'Failed to complete wish. Please try again.',
+    showCompleted: 'View Completed',
+    completedBadge: 'Completed',
+    alreadyCompleted: '✓ Wish Completed'
   }
 };
 

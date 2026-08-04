@@ -136,6 +136,7 @@ export async function saveWish(request: Request, env: Env): Promise<Response> {
 export async function listWishes(url: URL, env: Env): Promise<Response> {
   const category = url.searchParams.get('category');
   const search = url.searchParams.get('search')?.trim();
+  const statusParam = url.searchParams.get('status');
   const rawPage = Number.parseInt(url.searchParams.get('page') || '', 10);
   const rawLimit = Number.parseInt(url.searchParams.get('limit') || '', 10);
 
@@ -144,6 +145,12 @@ export async function listWishes(url: URL, env: Env): Promise<Response> {
   const page = isPaginated ? rawPage : 1;
   const conditions: string[] = [];
   const params: (string | number)[] = [];
+
+  if (statusParam === 'completed') {
+    conditions.push("status = 'completed'");
+  } else if (statusParam === 'active') {
+    conditions.push("(status = 'active' OR status IS NULL)");
+  }
 
   if (category && category !== 'all' && VALID_CATEGORIES.has(category)) {
     conditions.push('category = ?');
@@ -219,3 +226,21 @@ export async function blessWish(id: string, env: Env): Promise<Response> {
     return json({ error: serverMessage('zh', 'blessFailed') }, 500);
   }
 }
+
+export async function completeWish(id: string, env: Env): Promise<Response> {
+  try {
+    const completedAt = new Date().toISOString();
+    const result = await env.DB.prepare(
+      "UPDATE wishes SET status = 'completed', completedAt = ? WHERE id = ?"
+    ).bind(completedAt, id).run();
+
+    if (!result.meta?.changes) {
+      return json({ error: serverMessage('zh', 'notFound') }, 404);
+    }
+    return json({ success: true, completedAt });
+  } catch (error) {
+    console.error('Wish completion error:', error);
+    return json({ error: serverMessage('zh', 'updateFailed') }, 500);
+  }
+}
+

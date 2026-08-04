@@ -338,8 +338,19 @@
   gap: 0.8rem;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .modal-footer.hidden {
-  display: none;
+  display: none !important;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Form Controls */

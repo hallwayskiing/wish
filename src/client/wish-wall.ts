@@ -47,6 +47,7 @@ export function createWishWall({
   const filterPills = requireElement('wallFilterPills');
   const searchInput = requireElement<HTMLInputElement>('searchInput');
   const refreshButton = requireElement<HTMLButtonElement>('refreshWallBtn');
+  const showCompletedCheckbox = requireElement<HTMLInputElement>('showCompletedCheckbox');
   const grid = requireElement('wishGrid');
   const pagination = requireElement('wallPagination');
   const section = requireElement('wish-wall');
@@ -66,16 +67,16 @@ export function createWishWall({
     `;
   }
 
-  function renderGrid(): void {
-    if (!wishes.length) {
+  function renderGrid(pageWishes: Wish[]): void {
+    if (!pageWishes.length) {
       renderMessage('🌟', t('wallEmpty'), true);
       return;
     }
 
     const language = getLanguage();
-    const cards = wishes.map(wish => {
+    const cards = pageWishes.map(wish => {
       const card = document.createElement('div');
-      card.className = 'wish-card glass-panel';
+      card.className = `wish-card glass-panel${wish.status === 'completed' ? ' wish-completed-card' : ''}`;
       const date = new Date(wish.createdAt).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-CN', {
         year: '2-digit',
         month: '2-digit',
@@ -83,11 +84,15 @@ export function createWishWall({
       });
       const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
       const categoryName = getCategoryName(wish.category, language, t('wishFallback'));
+      const statusBadge = wish.status === 'completed'
+        ? `<span class="card-completed-badge">🎉 ${escapeHtml(t('completedBadge'))}</span>`
+        : '';
 
       card.innerHTML = `
         <div>
           <div class="card-top">
             <span class="card-cat-badge">${escapeHtml(categoryName)}</span>
+            ${statusBadge}
             <span class="card-date">${date}</span>
           </div>
           <h3 class="card-wish-text">“${escapeHtml(wish.title)}”</h3>
@@ -136,6 +141,27 @@ export function createWishWall({
     pagination.replaceChildren(...buttons);
   }
 
+  function renderWall(): void {
+    const isShowCompleted = showCompletedCheckbox.checked;
+    let filteredWishes = wishes.filter(wish =>
+      isShowCompleted ? wish.status === 'completed' : wish.status !== 'completed'
+    );
+
+    if (activeFilter !== 'all') {
+      filteredWishes = filteredWishes.filter(wish => wish.category === activeFilter);
+    }
+
+    totalPages = Math.max(1, Math.ceil(filteredWishes.length / PAGE_LIMIT));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * PAGE_LIMIT;
+    const pageWishes = filteredWishes.slice(start, start + PAGE_LIMIT);
+
+    renderGrid(pageWishes);
+    renderPagination();
+  }
+
   let activeAbortController: AbortController | null = null;
 
   async function load({ firstPage = false }: { firstPage?: boolean } = {}): Promise<void> {
@@ -148,17 +174,15 @@ export function createWishWall({
 
     try {
       const result = await api.getWishes(
-        activeFilter,
+        'all',
         searchInput.value.trim(),
-        currentPage,
-        PAGE_LIMIT,
+        undefined,
+        undefined,
+        'all',
         signal
       );
       wishes = result.wishes || [];
-      totalPages = result.totalPages || 1;
-      currentPage = result.page || 1;
-      renderGrid();
-      renderPagination();
+      renderWall();
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') return;
       console.error('Failed to load wish wall:', error);
@@ -170,7 +194,7 @@ export function createWishWall({
   function goToPage(page: number): void {
     if (page === currentPage || page < 1 || page > totalPages) return;
     currentPage = page;
-    load();
+    renderWall();
     scrollToSection(section);
   }
 
@@ -181,7 +205,8 @@ export function createWishWall({
     filterPills.querySelector('.filter-pill.active')?.classList.remove('active');
     pill.classList.add('active');
     activeFilter = pill.dataset.filter || 'all';
-    load({ firstPage: true });
+    currentPage = 1;
+    renderWall();
   });
 
   searchInput.addEventListener('input', () => {
@@ -199,6 +224,11 @@ export function createWishWall({
       refreshButton.disabled = false;
       refreshButton.classList.remove('loading');
     }
+  });
+
+  showCompletedCheckbox.addEventListener('change', () => {
+    currentPage = 1;
+    renderWall();
   });
 
   grid.addEventListener('click', async (event: MouseEvent) => {
@@ -252,5 +282,6 @@ export function createWishWall({
     }
   });
 
-  return { load, render: renderGrid };
+  return { load, render: renderWall };
 }
+

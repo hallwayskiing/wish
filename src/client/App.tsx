@@ -1,0 +1,171 @@
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import './styles/style.css';
+import './styles/wish.css';
+import './styles/modal.css';
+import './styles/wall.css';
+
+import { LanguageProvider, useLanguage } from './context/LanguageContext.js';
+import { ParticleCanvas } from './components/ParticleCanvas.js';
+import { Header } from './components/Header.js';
+import { WishHero } from './components/WishHero.js';
+import { WishWall, WishWallRef } from './components/WishWall.js';
+import { Footer } from './components/Footer.js';
+import { ApiKeyModal } from './components/ApiKeyModal.js';
+import { PlanModal } from './components/PlanModal.js';
+import { PosterModal } from './components/PosterModal.js';
+import { ToastContainer, ToastMessage } from './components/ToastContainer.js';
+import { Wish } from './types.js';
+
+const MainContent: React.FC = () => {
+  const { t } = useLanguage();
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [customApiKey, setCustomApiKey] = useState<string>(() => localStorage.getItem('gemini_api_key') || '');
+
+  // Modals state
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+
+  const [planModalState, setPlanModalState] = useState<{
+    isOpen: boolean;
+    wish: Wish | null;
+    isDraft: boolean;
+  }>({
+    isOpen: false,
+    wish: null,
+    isDraft: false
+  });
+
+  const [posterModalState, setPosterModalState] = useState<{
+    isOpen: boolean;
+    blob: Blob | null;
+    filename: string;
+  }>({
+    isOpen: false,
+    blob: null,
+    filename: ''
+  });
+  const [posterVersion, setPosterVersion] = useState(0);
+
+  const wishWallRef = useRef<WishWallRef>(null);
+  const toastTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
+
+  useEffect(() => {
+    const timers = toastTimersRef.current;
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
+
+  const showToast = useCallback((message: string) => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setToasts(prev => [...prev, { id, message }]);
+    const timer = setTimeout(() => {
+      toastTimersRef.current.delete(timer);
+      setToasts(prev => prev.filter(item => item.id !== id));
+    }, 3100);
+    toastTimersRef.current.add(timer);
+  }, []);
+
+  const handleSaveApiKey = (key: string) => {
+    setCustomApiKey(key);
+    if (key) {
+      localStorage.setItem('gemini_api_key', key);
+    } else {
+      localStorage.removeItem('gemini_api_key');
+    }
+    showToast(t(key ? 'apiKeySaved' : 'apiKeyCleared'));
+  };
+
+  const handleWishCreated = (wish: Wish) => {
+    setPlanModalState({
+      isOpen: true,
+      wish,
+      isDraft: true
+    });
+  };
+
+  const handleOpenPlanModal = (wish: Wish) => {
+    setPlanModalState({
+      isOpen: true,
+      wish,
+      isDraft: false
+    });
+  };
+
+  const handleOpenPosterModal = (blob: Blob, filename: string) => {
+    setPosterVersion(version => version + 1);
+    setPosterModalState({
+      isOpen: true,
+      blob,
+      filename
+    });
+  };
+
+  const handleSavedPlan = () => {
+    wishWallRef.current?.refresh();
+  };
+
+  const handleClosePosterModal = () => {
+    setPosterModalState({ isOpen: false, blob: null, filename: '' });
+  };
+
+  return (
+    <>
+      <ParticleCanvas />
+
+      <Header onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)} />
+
+      <main className="main-content">
+        <WishHero
+          customApiKey={customApiKey}
+          onWishCreated={handleWishCreated}
+          onShowToast={showToast}
+        />
+
+        <WishWall
+          ref={wishWallRef}
+          onOpenPlanModal={handleOpenPlanModal}
+          onOpenPosterModal={handleOpenPosterModal}
+          onShowToast={showToast}
+        />
+      </main>
+
+      <Footer />
+
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        apiKey={customApiKey}
+        onClose={() => setIsApiKeyModalOpen(false)}
+        onSaveApiKey={handleSaveApiKey}
+      />
+
+      <PlanModal
+        isOpen={planModalState.isOpen}
+        wish={planModalState.wish}
+        isDraft={planModalState.isDraft}
+        onClose={() => setPlanModalState(prev => ({ ...prev, isOpen: false }))}
+        onSaved={handleSavedPlan}
+        onShowToast={showToast}
+      />
+
+      <PosterModal
+        key={posterVersion}
+        isOpen={posterModalState.isOpen}
+        blob={posterModalState.blob}
+        filename={posterModalState.filename}
+        onClose={handleClosePosterModal}
+        onShowToast={showToast}
+      />
+
+      <ToastContainer toasts={toasts} />
+    </>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <LanguageProvider>
+      <MainContent />
+    </LanguageProvider>
+  );
+};

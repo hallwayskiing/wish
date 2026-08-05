@@ -1,4 +1,4 @@
-import { Wish, WishListResult } from './types.js';
+import { Wish, WishListResult, UnpaginatedWishListResult } from './types.js';
 
 declare global {
   interface Window {
@@ -38,14 +38,21 @@ export const WishAPI = {
     return data.wish;
   },
 
-  getWishes: (category = 'all', search = '', page?: number, limit?: number, status = 'all', signal?: AbortSignal): Promise<WishListResult> => {
+  getWishes: (
+    category = 'all',
+    search = '',
+    page?: number,
+    limit?: number,
+    status = 'all',
+    signal?: AbortSignal
+  ): Promise<WishListResult | UnpaginatedWishListResult> => {
     const params = new URLSearchParams();
     if (category !== 'all') params.set('category', category);
     if (search) params.set('search', search);
     if (page !== undefined) params.set('page', String(page));
     if (limit !== undefined) params.set('limit', String(limit));
     if (status) params.set('status', status);
-    return apiFetch<WishListResult>(`/wishes?${params}`, { signal });
+    return apiFetch<WishListResult | UnpaginatedWishListResult>(`/wishes?${params}`, { signal });
   },
 
   blessWish: (id: string): Promise<{ success: boolean; blessings: number }> =>

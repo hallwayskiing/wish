@@ -87,6 +87,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 80px;
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
   color: var(--text-primary);

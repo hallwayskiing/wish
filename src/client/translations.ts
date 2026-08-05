@@ -5,6 +5,7 @@ import { Language } from './types.js';
 export interface TranslationDictionary {
   pageDescription: string;
   brand: string;
+  primaryNavLabel: string;
   navWish: string;
   navWall: string;
   apiConfigTitle: string;
@@ -54,7 +55,9 @@ export interface TranslationDictionary {
   wishSaved: string;
   saveError: string;
   wallLoadError: string;
+  wallLoading: string;
   wallEmpty: string;
+  wishInputLabel: string;
   wishFallback: string;
   bless: string;
   sharePoster: string;
@@ -86,6 +89,7 @@ export const translations: Record<Language, TranslationDictionary> = {
   zh: {
     pageDescription: SITE_CONFIG.description.zh,
     brand: SITE_CONFIG.brand.zh,
+    primaryNavLabel: '主要导航',
     navWish: '祈愿台',
     navWall: '愿望森林',
     apiConfigTitle: '配置 Google API 密钥',
@@ -147,7 +151,9 @@ export const translations: Record<Language, TranslationDictionary> = {
     wishSaved: '🌟 愿望已保存到愿望森林',
     saveError: '保存愿望失败',
     wallLoadError: '加载愿望森林出错了，请检查网络或后端服务。',
+    wallLoading: '正在加载愿望森林...',
     wallEmpty: '暂时还没有此类愿望，快来许下第一个心愿吧！',
+    wishInputLabel: '请输入你的心愿',
     wishFallback: '心愿',
     bless: '助愿',
     sharePoster: '分享',
@@ -177,6 +183,7 @@ export const translations: Record<Language, TranslationDictionary> = {
   en: {
     pageDescription: SITE_CONFIG.description.en,
     brand: SITE_CONFIG.brand.en,
+    primaryNavLabel: 'Primary navigation',
     navWish: 'Wishing Well',
     navWall: 'Wish Forest',
     apiConfigTitle: 'Configure Google API Key',
@@ -238,7 +245,9 @@ export const translations: Record<Language, TranslationDictionary> = {
     wishSaved: '🌟 Wish saved to the Wish Forest',
     saveError: 'Failed to save wish',
     wallLoadError: 'Could not load the Wish Forest. Please check server connection.',
+    wallLoading: 'Loading the Wish Forest...',
     wallEmpty: 'No wishes here yet. Be the first to make one!',
+    wishInputLabel: 'Enter your wish',
     wishFallback: 'Wish',
     bless: 'Like',
     sharePoster: 'Share',

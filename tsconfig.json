@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "types": ["@cloudflare/workers-types", "node"],
+    "types": ["@cloudflare/workers-types", "node", "react", "react-dom"],
     "strict": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
@@ -14,7 +14,7 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
+    "jsx": "react-jsx",
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*", "vite.config.ts"]

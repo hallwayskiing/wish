@@ -22,7 +22,7 @@ index.html / admin/index.html          # Vite dual entries
 src/worker.ts / src/routes.ts          # Worker entry, route dispatch (auth boundary)
 src/wishes.ts / src/admin-wishes.ts    # Wish CRUD, blessings, completion
 src/model.ts / src/prompt.ts           # Gemini (gemini-flash-lite-latest) + prompts
-src/categories.ts / src/site-config.ts / src/types.ts / src/server-messages.ts / src/wish-data.ts
+src/categories.ts / src/types.ts / src/server-messages.ts / src/wish-data.ts
 src/client/  { App.tsx, api.ts, poster.ts, translations.ts, components/, admin/, context/, hooks/, styles/ }
 migrations/  wrangler.jsonc  vite.config.ts  tsconfig.json
 ```
@@ -30,7 +30,7 @@ migrations/  wrangler.jsonc  vite.config.ts  tsconfig.json
 ## Single Sources of Truth
 
 - Categories: `src/categories.ts` — `CATEGORY_IDS`, `CATEGORY_NAMES`, `getCategory*`, `normalizeCategory`
-- Site copy: `src/site-config.ts` + `src/client/translations.ts` — add every user-facing string in both `zh`/`en` there, never hardcode in components
+- Site copy: `src/client/translations.ts` — add every user-facing string in both `zh`/`en` there, never hardcode in components
 - Types: `src/types.ts` → `src/client/types.ts` is re-export only
 - Server errors: `src/server-messages.ts` — all `json({ error })` must use `serverMessage(lang, key)`
 

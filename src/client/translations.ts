@@ -1,5 +1,3 @@
-import { CATEGORY_NAMES, CategoryId } from '../categories.js';
-import { SITE_CONFIG } from '../site-config.js';
 import { Language } from './types.js';
 
 export interface TranslationDictionary {
@@ -38,7 +36,6 @@ export interface TranslationDictionary {
   clearApiKey: string;
   saveConfig: string;
   footerQuote: string;
-  categoryNames: Readonly<Record<CategoryId, string>>;
   placeholders: Record<string, string>;
   loadingPhrases: string[];
   apiKeySaved: string;
@@ -87,8 +84,8 @@ export interface TranslationDictionary {
 
 export const translations: Record<Language, TranslationDictionary> = {
   zh: {
-    pageDescription: SITE_CONFIG.description.zh,
-    brand: SITE_CONFIG.brand.zh,
+    pageDescription: '许下你的心愿，生成具象的行动蓝图。',
+    brand: '璀璨许愿阁',
     primaryNavLabel: '主要导航',
     navWish: '祈愿台',
     navWall: '愿望森林',
@@ -122,7 +119,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     clearApiKey: '清除 Key',
     saveConfig: '保存配置',
     footerQuote: '“星光不问赶路人，岁月不负有心人。”',
-    categoryNames: CATEGORY_NAMES.zh,
     placeholders: {
       growth: '我想养成阅读和复盘的习惯',
       career: '我想完成作品集，并获得理想的工作机会',
@@ -181,8 +177,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     alreadyCompleted: '✓ 心愿已完成'
   },
   en: {
-    pageDescription: SITE_CONFIG.description.en,
-    brand: SITE_CONFIG.brand.en,
+    pageDescription: 'Make a wish and turn it into a concrete action plan.',
+    brand: 'Cosmic Wishing Well',
     primaryNavLabel: 'Primary navigation',
     navWish: 'Wishing Well',
     navWall: 'Wish Forest',
@@ -216,7 +212,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     clearApiKey: 'Clear Key',
     saveConfig: 'Save Config',
     footerQuote: '“May every step beneath the stars bring your wish closer.”',
-    categoryNames: CATEGORY_NAMES.en,
     placeholders: {
       growth: 'I want to build a habit of reading and reflecting',
       career: 'I want to complete my portfolio and find an ideal opportunity',

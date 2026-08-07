@@ -2,12 +2,11 @@ import { CATEGORY_NAMES, normalizeCategory } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { generatePlan } from './model.js';
 import { serverMessage } from './server-messages.js';
-import { Env, Wish, WishListResult } from './types.js';
+import { Env, Wish, WishListResult, RawWishRow } from './types.js';
 import {
   bindStatement,
   MAX_PLAN_LENGTH,
   parseWishRow,
-  RawWishRow,
   serializePlan,
   VALID_CATEGORIES,
   WISH_FIELDS
@@ -243,4 +242,3 @@ export async function completeWish(id: string, env: Env): Promise<Response> {
     return json({ error: serverMessage('zh', 'updateFailed') }, 500);
   }
 }
-

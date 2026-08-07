@@ -1,21 +1,9 @@
 import { CATEGORY_IDS } from './categories.js';
-import { Wish, AIPlan, AIPlanPhase } from './types.js';
+import { Wish, AIPlan, AIPlanPhase, RawWishRow } from './types.js';
 
 export const WISH_FIELDS = 'id, title, category, categoryName, createdAt, blessings, aiPlan, status, completedAt';
 export const VALID_CATEGORIES: Set<string> = new Set(CATEGORY_IDS);
 export const MAX_PLAN_LENGTH = 100_000;
-
-export interface RawWishRow {
-  id: string;
-  title: string;
-  category: string;
-  categoryName: string;
-  createdAt: string;
-  blessings: number;
-  aiPlan: string;
-  status?: string;
-  completedAt?: string;
-}
 
 export function sanitizeAiPlan(obj: unknown): AIPlan {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return {};

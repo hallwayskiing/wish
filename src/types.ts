@@ -1,3 +1,7 @@
+export type Language = 'zh' | 'en';
+
+export type TranslateFn = (key: string) => string;
+
 export interface Env {
   DB: D1Database;
   ASSETS?: Fetcher;
@@ -60,4 +64,16 @@ export interface AdminWishUpdateInput {
   categoryName?: string;
   blessings: number;
   aiPlan: AIPlan;
+}
+
+export interface RawWishRow {
+  id: string;
+  title: string;
+  category: string;
+  categoryName: string;
+  createdAt: string;
+  blessings: number;
+  aiPlan: string;
+  status?: string;
+  completedAt?: string;
 }

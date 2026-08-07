@@ -1,4 +1,4 @@
-import { CATEGORY_NAMES, CategoryId } from './categories.js';
+import { CATEGORY_NAMES, type CategoryId } from './categories.js';
 
 export function buildPrompt(wish: string, category: CategoryId, language: string): string {
   if (language === 'en') {

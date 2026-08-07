@@ -1,4 +1,4 @@
-import { CategoryId } from './categories.js';
+import type { CategoryId } from './categories.js';
 import { buildPrompt } from './prompt.js';
 import { serverMessage } from './server-messages.js';
 import { AIPlan } from './types.js';

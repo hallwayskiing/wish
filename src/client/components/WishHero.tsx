@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CATEGORY_IDS, CategoryId, getCategoryLabel } from '../../categories.js';
+import { CATEGORY_IDS, type CategoryId, getCategoryLabel } from '../../categories.js';
 import { WishAPI } from '../api.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import { Wish } from '../types.js';

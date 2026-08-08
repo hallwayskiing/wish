@@ -1,4 +1,4 @@
-import { Language } from './types.js';
+import type { Language } from './types.js';
 
 export interface TranslationDictionary {
   pageDescription: string;
@@ -114,7 +114,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     firstStepTitle: '🚀 24h 启程第一步',
     phaseLabel: '阶段',
     save: '保存心愿到森林',
-    apiModalTip: '请输入您的 Google API 密钥，用于调用 Google Gemini 服务生成愿望行动方案。密钥仅保存在当前浏览器中。',
+    apiModalTip:
+      '请输入您的 Google API 密钥，用于调用 Google Gemini 服务生成愿望行动方案。密钥仅保存在当前浏览器中。',
     apiKeyLabel: 'Google API Key：',
     clearApiKey: '清除 Key',
     saveConfig: '保存配置',
@@ -125,13 +126,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       study: '我想掌握数据分析，并独立完成一个可视化项目',
       love: '我想学会更真诚地表达感受，建立稳定而温暖的关系',
       health: '我想建立规律运动和早睡的生活节奏',
-      creative: '我想完成第一篇短篇小说并公开发布'
+      creative: '我想完成第一篇短篇小说并公开发布',
     },
     loadingPhrases: [
       '正在感应并解析你的心愿...',
       '正在梳理愿望核心与潜在阻力...',
       '正在推演心愿落地的行动路径...',
-      '正在凝练关键建议与启程第一步...'
+      '正在凝练关键建议与启程第一步...',
     ],
     apiKeySaved: '✦ Google API 密钥已保存',
     apiKeyCleared: '已清除 Google API 密钥',
@@ -174,7 +175,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     completeError: '完成心愿失败，请重试',
     showCompleted: '查看已完成',
     completedBadge: '已完成',
-    alreadyCompleted: '✓ 心愿已完成'
+    alreadyCompleted: '✓ 心愿已完成',
   },
   en: {
     pageDescription: 'Make a wish and turn it into a concrete action plan.',
@@ -188,7 +189,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     heroBadge: '✦ Make a Cosmic Wish',
     heroTitle: 'Make a wish, ',
     heroTitleAccent: 'build a path from vision to reality',
-    heroSubtitle: 'Every sincere wish deserves clarity. Make yours and receive a personalized action plan.',
+    heroSubtitle:
+      'Every sincere wish deserves clarity. Make yours and receive a personalized action plan.',
     categoryLabel: 'Wish category:',
     filterAll: 'All Wishes',
     submitWish: 'Launch Wish',
@@ -207,7 +209,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     firstStepTitle: '🚀 First Step in 24h',
     phaseLabel: 'Phase',
     save: 'Save to Forest',
-    apiModalTip: 'Enter your Google API key to generate wish action plans with Google Gemini. The key is stored only in this browser.',
+    apiModalTip:
+      'Enter your Google API key to generate wish action plans with Google Gemini. The key is stored only in this browser.',
     apiKeyLabel: 'Google API Key:',
     clearApiKey: 'Clear Key',
     saveConfig: 'Save Config',
@@ -218,13 +221,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       study: 'I want to master data analysis and build a visualization project',
       love: 'I want to express myself honestly and build a warm, stable relationship',
       health: 'I want to build a consistent exercise and sleep routine',
-      creative: 'I want to finish and publish my first short story'
+      creative: 'I want to finish and publish my first short story',
     },
     loadingPhrases: [
       'Sensing and interpreting your wish...',
       'Mapping its core goals and potential obstacles...',
       'Designing a practical path forward...',
-      'Refining key guidance and your first step...'
+      'Refining key guidance and your first step...',
     ],
     apiKeySaved: '✦ Google API key saved',
     apiKeyCleared: 'Google API key cleared',
@@ -267,8 +270,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     completeError: 'Failed to complete wish. Please try again.',
     showCompleted: 'View Completed',
     completedBadge: 'Completed',
-    alreadyCompleted: '✓ Wish Completed'
-  }
+    alreadyCompleted: '✓ Wish Completed',
+  },
 };
 
 export function translate(language: Language, key: string): string {

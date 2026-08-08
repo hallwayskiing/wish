@@ -1,4 +1,4 @@
-import { Wish, WishListResult, UnpaginatedWishListResult } from './types.js';
+import type { UnpaginatedWishListResult, Wish, WishListResult } from './types.js';
 
 declare global {
   interface Window {
@@ -8,11 +8,14 @@ declare global {
 
 const API_BASE = window.API_BASE || '/api';
 
-async function apiFetch<T>(endpoint: string, options: RequestInit & { headers?: Record<string, string> } = {}): Promise<T> {
+async function apiFetch<T>(
+  endpoint: string,
+  options: RequestInit & { headers?: Record<string, string> } = {}
+): Promise<T> {
   const { headers, ...fetchOptions } = options;
   const res = await fetch(`${API_BASE}${endpoint}`, {
     ...fetchOptions,
-    headers: { 'Content-Type': 'application/json', ...headers }
+    headers: { 'Content-Type': 'application/json', ...headers },
   });
   const data: unknown = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -24,16 +27,21 @@ async function apiFetch<T>(endpoint: string, options: RequestInit & { headers?: 
 }
 
 export const WishAPI = {
-  submitWish: (wish: string, category: string, customApiKey?: string, language = 'zh'): Promise<{ success: boolean; wish: Wish }> =>
+  submitWish: (
+    wish: string,
+    category: string,
+    customApiKey?: string,
+    language = 'zh'
+  ): Promise<{ success: boolean; wish: Wish }> =>
     apiFetch<{ success: boolean; wish: Wish }>('/wish', {
       method: 'POST',
-      body: JSON.stringify({ wish, category, customApiKey, language })
+      body: JSON.stringify({ wish, category, customApiKey, language }),
     }),
 
   saveWish: async (wish: Wish, language = 'zh'): Promise<Wish> => {
     const data = await apiFetch<{ success: boolean; wish: Wish }>('/wishes', {
       method: 'POST',
-      body: JSON.stringify({ wish, language })
+      body: JSON.stringify({ wish, language }),
     });
     return data.wish;
   },
@@ -56,8 +64,12 @@ export const WishAPI = {
   },
 
   blessWish: (id: string): Promise<{ success: boolean; blessings: number }> =>
-    apiFetch<{ success: boolean; blessings: number }>(`/wishes/${encodeURIComponent(id)}/bless`, { method: 'POST' }),
+    apiFetch<{ success: boolean; blessings: number }>(`/wishes/${encodeURIComponent(id)}/bless`, {
+      method: 'POST',
+    }),
 
   completeWish: (id: string): Promise<{ success: boolean }> =>
-    apiFetch<{ success: boolean }>(`/wishes/${encodeURIComponent(id)}/complete`, { method: 'POST' })
+    apiFetch<{ success: boolean }>(`/wishes/${encodeURIComponent(id)}/complete`, {
+      method: 'POST',
+    }),
 };

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CATEGORY_IDS, type CategoryId, getCategoryLabel } from '../../categories.js';
 import { WishAPI } from '../api.js';
 import { useLanguage } from '../context/LanguageContext.js';
-import { Wish } from '../types.js';
+import type { Wish } from '../types.js';
 
 interface WishHeroProps {
   customApiKey: string;
@@ -88,8 +89,10 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
         <p className="hero-subtitle">{t('heroSubtitle')}</p>
 
         <form className="wish-card-form glass-panel" onSubmit={handleSubmit} aria-busy={isLoading}>
-          <div className="category-selector" role="group" aria-labelledby="categoryLabel">
-            <span className="section-label" id="categoryLabel">{t('categoryLabel')}</span>
+          <fieldset className="category-selector" aria-labelledby="categoryLabel">
+            <legend className="section-label" id="categoryLabel">
+              {t('categoryLabel')}
+            </legend>
             <div className="category-pills" id="categoryPills">
               {CATEGORY_IDS.map(cat => (
                 <button
@@ -103,7 +106,7 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           <div className="input-group">
             <textarea
@@ -122,12 +125,7 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
             </div>
           </div>
 
-          <button
-            id="submitWishBtn"
-            className="btn-primary"
-            disabled={isLoading}
-            type="submit"
-          >
+          <button id="submitWishBtn" className="btn-primary" disabled={isLoading} type="submit">
             <span className="btn-stars">✦</span>
             <span className="btn-text">{t('submitWish')}</span>
           </button>

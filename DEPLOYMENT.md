@@ -11,7 +11,7 @@ This document is for deployment and operations. It covers local development, fir
 
 ## Prerequisites
 
-- Node.js >= 18
+- Node.js 24 (CI runs on 24, local `v24.18.0` verified)
 - Cloudflare account (free tier is enough)
 - Google Gemini API key (for end users or for local testing)
 
@@ -34,7 +34,8 @@ Common scripts:
 | `npm run dev` | Local development (Vite + Cloudflare Workers) |
 | `npm run build` | Production build (outputs `dist/client` and `dist/wish_realizer`) |
 | `npm run check` | Type checking with `tsc --noEmit` |
-| `npm run lint` | ESLint |
+| `npm run lint` | Lint & format check with `biome check .` (0 error) |
+| `npm run format` | Format & fix with `biome check --write .` |
 | `npm run db:migrate:local` | Apply D1 migrations locally |
 | `npm run db:migrate:remote` | Apply D1 migrations remotely |
 | `npm run deploy` | Deploy the existing production build to Cloudflare |
@@ -114,6 +115,6 @@ npm run db:migrate:remote
 - `src/model.ts` / `src/prompt.ts`: Gemini client and prompts
 - `src/client/`: React frontend (`index.html` + `admin/index.html` as dual entries)
 - `migrations/`: D1 migrations (executed in order, never edit a shipped migration)
-- `vite.config.ts` / `wrangler.jsonc` / `tsconfig.json` / `eslint.config.js`: Build and lint config
+- `vite.config.ts` / `wrangler.jsonc` / `tsconfig.json` / `biome.json`: Build and lint config (Biome `preset: recommended` — single tool for lint + format)
 
 For contribution guidelines see [AGENTS.md](./AGENTS.md). For a human-facing overview see [README.md](./README.md).

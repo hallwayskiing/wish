@@ -1,7 +1,8 @@
 import { CATEGORY_IDS } from './categories.js';
-import { Wish, AIPlan, AIPlanPhase, RawWishRow } from './types.js';
+import type { AIPlan, AIPlanPhase, RawWishRow, Wish } from './types.js';
 
-export const WISH_FIELDS = 'id, title, category, categoryName, createdAt, blessings, aiPlan, status, completedAt';
+export const WISH_FIELDS =
+  'id, title, category, categoryName, createdAt, blessings, aiPlan, status, completedAt';
 export const VALID_CATEGORIES: Set<string> = new Set(CATEGORY_IDS);
 export const MAX_PLAN_LENGTH = 100_000;
 
@@ -20,7 +21,9 @@ export function sanitizeAiPlan(obj: unknown): AIPlan {
         title: typeof step.title === 'string' ? step.title : undefined,
         action: typeof step.action === 'string' ? step.action : undefined,
         timeline: typeof step.timeline === 'string' ? step.timeline : undefined,
-        tasks: Array.isArray(step.tasks) ? step.tasks.filter((t): t is string => typeof t === 'string') : undefined
+        tasks: Array.isArray(step.tasks)
+          ? step.tasks.filter((t): t is string => typeof t === 'string')
+          : undefined,
       };
     });
   };
@@ -38,11 +41,13 @@ export function sanitizeAiPlan(obj: unknown): AIPlan {
     habits: sanitizeStringArray(p.habits),
     habitsAndTools: sanitizeStringArray(p.habitsAndTools),
     pitfalls: sanitizeStringArray(p.pitfalls),
-    firstStep: typeof p.firstStep === 'string' ? p.firstStep : undefined
+    firstStep: typeof p.firstStep === 'string' ? p.firstStep : undefined,
   };
 }
 
-export function serializePlan(plan: AIPlan | Record<string, unknown> | null | undefined): string | null {
+export function serializePlan(
+  plan: AIPlan | Record<string, unknown> | null | undefined
+): string | null {
   if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return null;
   const sanitized = sanitizeAiPlan(plan);
   return JSON.stringify(sanitized);
@@ -58,7 +63,9 @@ export function parseAiPlanJson(jsonString?: unknown): AIPlan {
   }
 }
 
-export function parseWishRow(row: RawWishRow | Record<string, unknown> | null | undefined): Wish | null {
+export function parseWishRow(
+  row: RawWishRow | Record<string, unknown> | null | undefined
+): Wish | null {
   if (!row || typeof row !== 'object') return null;
   const raw = row as Record<string, unknown>;
   return {
@@ -70,10 +77,13 @@ export function parseWishRow(row: RawWishRow | Record<string, unknown> | null | 
     blessings: Number(raw.blessings) || 0,
     aiPlan: parseAiPlanJson(raw.aiPlan),
     status: raw.status === 'completed' ? 'completed' : 'active',
-    completedAt: typeof raw.completedAt === 'string' ? raw.completedAt : undefined
+    completedAt: typeof raw.completedAt === 'string' ? raw.completedAt : undefined,
   };
 }
 
-export function bindStatement(statement: D1PreparedStatement, params: (string | number)[]): D1PreparedStatement {
+export function bindStatement(
+  statement: D1PreparedStatement,
+  params: (string | number)[]
+): D1PreparedStatement {
   return params.length ? statement.bind(...params) : statement;
 }

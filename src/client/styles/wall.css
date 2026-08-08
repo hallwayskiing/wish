@@ -134,9 +134,10 @@
   font: 500 0.82rem var(--font-sans);
   white-space: nowrap;
   cursor: pointer;
-  transition: border-color var(--duration-fast) var(--ease-in-out),
-              background var(--duration-fast) var(--ease-in-out),
-              color var(--duration-fast) var(--ease-in-out);
+  transition:
+    border-color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out),
+    color var(--duration-fast) var(--ease-in-out);
 }
 
 .wall-refresh-btn .refresh-icon {
@@ -212,7 +213,7 @@
 }
 
 .completed-checkbox:checked::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -240,8 +241,12 @@
 }
 
 @keyframes refreshSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 640px) {
@@ -290,9 +295,10 @@
   padding: 1.6rem;
   min-height: 220px;
   position: relative;
-  transition: border-color var(--duration-normal) var(--ease-in-out),
-              box-shadow var(--duration-normal) var(--ease-in-out),
-              transform var(--duration-normal) var(--ease-out);
+  transition:
+    border-color var(--duration-normal) var(--ease-in-out),
+    box-shadow var(--duration-normal) var(--ease-in-out),
+    transform var(--duration-normal) var(--ease-out);
 }
 
 .wish-card:hover {
@@ -390,9 +396,10 @@
   white-space: nowrap;
   cursor: pointer;
   box-sizing: border-box;
-  transition: border-color var(--duration-fast) var(--ease-in-out),
-              background var(--duration-fast) var(--ease-in-out),
-              color var(--duration-fast) var(--ease-in-out);
+  transition:
+    border-color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out),
+    color var(--duration-fast) var(--ease-in-out);
 }
 
 .btn-bless .bless-icon {
@@ -480,8 +487,12 @@
 }
 
 @keyframes blessSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-view-plan {

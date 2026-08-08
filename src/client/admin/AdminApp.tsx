@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import '../styles/style.css';
 import './admin.css';
 import './editor.css';
 import { ParticleCanvas } from '../components/ParticleCanvas.js';
 import { adminApi } from './api.js';
-import { LoginPanel } from './components/LoginPanel.js';
 import { Dashboard } from './components/Dashboard.js';
+import { LoginPanel } from './components/LoginPanel.js';
 
 export const AdminApp: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -27,7 +28,7 @@ export const AdminApp: React.FC = () => {
     try {
       await adminApi<{ success: boolean }>('/login', {
         method: 'POST',
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ password }),
       });
       setIsAuthenticated(true);
     } catch (err: unknown) {

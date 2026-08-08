@@ -1,7 +1,7 @@
 import { CATEGORY_NAMES, isCategoryId } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { serverMessage } from './server-messages.js';
-import { Env, AIPlan } from './types.js';
+import type { AIPlan, Env } from './types.js';
 import { MAX_PLAN_LENGTH, parseWishRow, serializePlan, WISH_FIELDS } from './wish-data.js';
 
 interface UpdateAdminWishBody {
@@ -40,17 +40,19 @@ export async function updateAdminWish(id: string, request: Request, env: Env): P
           completedAt = CASE WHEN ? = 'completed' THEN COALESCE(completedAt, ?) ELSE NULL END,
           aiPlan = ?
       WHERE id = ?
-    `).bind(
-      title,
-      category,
-      CATEGORY_NAMES.zh[category],
-      blessings,
-      status,
-      status,
-      now,
-      serializedPlan,
-      id
-    ).run();
+    `)
+      .bind(
+        title,
+        category,
+        CATEGORY_NAMES.zh[category],
+        blessings,
+        status,
+        status,
+        now,
+        serializedPlan,
+        id
+      )
+      .run();
 
     if (!update.meta?.changes) {
       return json({ error: serverMessage('zh', 'notFound') }, 404);
@@ -60,7 +62,9 @@ export async function updateAdminWish(id: string, request: Request, env: Env): P
       SELECT ${WISH_FIELDS}
       FROM wishes
       WHERE id = ?
-    `).bind(id).first();
+    `)
+      .bind(id)
+      .first();
     return json({ success: true, wish: parseWishRow(row) });
   } catch (error) {
     console.error('Admin wish update error:', error);

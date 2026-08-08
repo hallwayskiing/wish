@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { getCategoryName } from '../../categories.js';
 import { WishAPI } from '../api.js';
 import { useLanguage } from '../context/LanguageContext.js';
-import { Wish } from '../types.js';
+import type { Wish } from '../types.js';
 
-let posterModulePromise: Promise<{ createWishPoster: typeof import('../poster.js').createWishPoster }> | null = null;
+let posterModulePromise: Promise<{
+  createWishPoster: typeof import('../poster.js').createWishPoster;
+}> | null = null;
 
 function loadPosterModule() {
   posterModulePromise ||= import('../poster.js').catch(error => {
@@ -27,7 +30,7 @@ export const WishCard: React.FC<WishCardProps> = ({
   onOpenPlanModal,
   onOpenPosterModal,
   onShowToast,
-  onBlessed
+  onBlessed,
 }) => {
   const { language, t } = useLanguage();
   const [isBlessing, setIsBlessing] = useState(false);
@@ -37,7 +40,7 @@ export const WishCard: React.FC<WishCardProps> = ({
   const date = new Date(wish.createdAt).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-CN', {
     year: '2-digit',
     month: '2-digit',
-    day: '2-digit'
+    day: '2-digit',
   });
   const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
   const categoryName = getCategoryName(wish.category, language, t('wishFallback'));
@@ -73,7 +76,9 @@ export const WishCard: React.FC<WishCardProps> = ({
   };
 
   return (
-    <div className={`wish-card glass-panel ${wish.status === 'completed' ? 'wish-completed-card' : ''}`}>
+    <div
+      className={`wish-card glass-panel ${wish.status === 'completed' ? 'wish-completed-card' : ''}`}
+    >
       <div>
         <div className="card-top">
           <span className="card-cat-badge">{categoryName}</span>
@@ -114,11 +119,7 @@ export const WishCard: React.FC<WishCardProps> = ({
           </span>
           <span>{t('sharePoster')}</span>
         </button>
-        <button
-          className="btn-view-plan"
-          onClick={() => onOpenPlanModal(wish)}
-          type="button"
-        >
+        <button className="btn-view-plan" onClick={() => onOpenPlanModal(wish)} type="button">
           {t('viewPlan')}
         </button>
       </div>

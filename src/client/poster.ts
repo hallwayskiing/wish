@@ -1,5 +1,5 @@
 import { getCategoryName } from '../categories.js';
-import { Language, TranslateFn, Wish } from './types.js';
+import type { Language, TranslateFn, Wish } from './types.js';
 
 interface PosterOptions {
   language: Language;
@@ -17,10 +17,13 @@ function wrapPosterText(
   maxWidth: number,
   maxLines: number
 ): string[] {
-  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  const text = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!text) return [];
 
-  const pattern = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]|\s+|[^\s\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+/g;
+  const pattern =
+    /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]|\s+|[^\s\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+/g;
   const tokens = text.match(pattern) || [];
 
   const lines: string[] = [];
@@ -70,7 +73,9 @@ function drawPosterLines(
   y: number,
   lineHeight: number
 ): void {
-  lines.forEach((line, index) => context.fillText(line, x, y + index * lineHeight));
+  lines.forEach((line, index) => {
+    context.fillText(line, x, y + index * lineHeight);
+  });
 }
 
 function fillRoundedRect(
@@ -146,11 +151,11 @@ async function loadSiteQrImage(): Promise<HTMLImageElement> {
   return image;
 }
 
-export async function createWishPoster(wish: Wish, { language, t }: PosterOptions): Promise<PosterResult> {
-  const [qrImage] = await Promise.all([
-    loadSiteQrImage(),
-    document.fonts?.ready
-  ]);
+export async function createWishPoster(
+  wish: Wish,
+  { language, t }: PosterOptions
+): Promise<PosterResult> {
+  const [qrImage] = await Promise.all([loadSiteQrImage(), document.fonts?.ready]);
 
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
@@ -188,14 +193,15 @@ export async function createWishPoster(wish: Wish, { language, t }: PosterOption
   drawCornerMark(context, 50, 50, 1, 1);
   drawCornerMark(context, 1030, 1390, -1, -1);
 
-  const fontFamily = language === 'en'
-    ? '"Plus Jakarta Sans", "Noto Sans SC", sans-serif'
-    : '"Noto Sans SC", "Plus Jakarta Sans", sans-serif';
+  const fontFamily =
+    language === 'en'
+      ? '"Plus Jakarta Sans", "Noto Sans SC", sans-serif'
+      : '"Noto Sans SC", "Plus Jakarta Sans", sans-serif';
   const locale = language === 'en' ? 'en-US' : 'zh-CN';
   const date = new Date(wish.createdAt || Date.now()).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   });
   const category = getCategoryName(wish.category, language, t('wishFallback'));
   const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
@@ -267,13 +273,7 @@ export async function createWishPoster(wish: Wish, { language, t }: PosterOption
   context.fillText(t('inspirationTitle'), 162, 857);
   context.fillStyle = POSTER_THEME.text;
   context.font = `400 29px ${fontFamily}`;
-  drawPosterLines(
-    context,
-    wrapPosterText(context, inspiration, 820, 5),
-    98,
-    918,
-    43
-  );
+  drawPosterLines(context, wrapPosterText(context, inspiration, 820, 5), 98, 918, 43);
 
   context.strokeStyle = POSTER_THEME.border;
   context.beginPath();
@@ -315,7 +315,7 @@ export async function createWishPoster(wish: Wish, { language, t }: PosterOption
   if (!wish.id) throw new Error('Wish has no database ID');
   return {
     blob: await canvasToPngBlob(canvas),
-    filename: `${wish.id}.png`
+    filename: `${wish.id}.png`,
   };
 }
 
@@ -331,5 +331,5 @@ const POSTER_THEME = {
   textSecondary: '#8a8a8d',
   textMuted: '#5a5a5d',
   border: 'rgba(255, 255, 255, 0.08)',
-  borderSoft: 'rgba(255, 255, 255, 0.045)'
+  borderSoft: 'rgba(255, 255, 255, 0.045)',
 };

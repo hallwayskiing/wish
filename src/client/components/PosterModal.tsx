@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext.js';
 import { useDialogA11y } from '../hooks/useDialogA11y.js';
 
@@ -15,7 +16,7 @@ export const PosterModal: React.FC<PosterModalProps> = ({
   blob,
   filename,
   onClose,
-  onShowToast
+  onShowToast,
 }) => {
   const { t } = useLanguage();
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -53,7 +54,13 @@ export const PosterModal: React.FC<PosterModalProps> = ({
   };
 
   return (
-    <div className="modal-backdrop show" id="posterModal" onClick={onClose}>
+    <div className="modal-backdrop show" id="posterModal">
+      <button
+        type="button"
+        className="modal-overlay"
+        aria-label={t('closeModal')}
+        onClick={onClose}
+      />
       <div
         ref={dialogRef}
         className="modal-dialog poster-modal-dialog glass-panel"
@@ -61,7 +68,6 @@ export const PosterModal: React.FC<PosterModalProps> = ({
         aria-modal="true"
         aria-labelledby="posterModalTitle"
         tabIndex={-1}
-        onClick={e => e.stopPropagation()}
       >
         <button
           className="close-modal-btn"
@@ -79,20 +85,19 @@ export const PosterModal: React.FC<PosterModalProps> = ({
         </div>
 
         <div className="poster-preview-body">
-          {imageUrl && (
-            <img
-              id="posterPreviewImage"
-              src={imageUrl}
-              alt={t('posterPreviewAlt')}
-            />
-          )}
+          {imageUrl && <img id="posterPreviewImage" src={imageUrl} alt={t('posterPreviewAlt')} />}
         </div>
 
         <div className="modal-footer">
           <button className="btn-secondary" id="cancelPosterBtn" onClick={onClose} type="button">
             {t('close')}
           </button>
-          <button className="btn-primary" id="downloadPosterBtn" onClick={handleDownload} type="button">
+          <button
+            className="btn-primary"
+            id="downloadPosterBtn"
+            onClick={handleDownload}
+            type="button"
+          >
             {t('downloadPoster')}
           </button>
         </div>

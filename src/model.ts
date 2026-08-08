@@ -1,7 +1,7 @@
 import type { CategoryId } from './categories.js';
 import { buildPrompt } from './prompt.js';
 import { serverMessage } from './server-messages.js';
-import { AIPlan } from './types.js';
+import type { AIPlan } from './types.js';
 import { sanitizeAiPlan } from './wish-data.js';
 
 const GEMINI_MODEL = 'gemini-flash-lite-latest';
@@ -34,15 +34,22 @@ type GeminiResponsePayload = GeminiErrorPayload & {
 };
 
 function extractText(payload: GeminiResponsePayload): string {
-  return payload.candidates?.[0]?.content?.parts
-    ?.map(part => part.text || '')
-    .join('')
-    .replace(/```json/gi, '')
-    .replace(/```/g, '')
-    .trim() || '';
+  return (
+    payload.candidates?.[0]?.content?.parts
+      ?.map(part => part.text || '')
+      .join('')
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim() || ''
+  );
 }
 
-export async function generatePlan({ wish, category, apiKey, language = 'zh' }: GeneratePlanOptions): Promise<AIPlan> {
+export async function generatePlan({
+  wish,
+  category,
+  apiKey,
+  language = 'zh',
+}: GeneratePlanOptions): Promise<AIPlan> {
   if (!apiKey) {
     throw new Error(serverMessage(language, 'noApiKey'));
   }
@@ -57,17 +64,19 @@ export async function generatePlan({ wish, category, apiKey, language = 'zh' }: 
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: buildPrompt(wish, category, language) }] }],
-      generationConfig: { responseMimeType: 'application/json' }
-    })
+      generationConfig: { responseMimeType: 'application/json' },
+    }),
   });
   const payload = (await response.json()) as GeminiResponsePayload;
 
   if (!response.ok) {
-    throw new Error(serverMessage(
-      language,
-      'modelRequestFailed',
-      payload.error?.message || `HTTP ${response.status}`
-    ));
+    throw new Error(
+      serverMessage(
+        language,
+        'modelRequestFailed',
+        payload.error?.message || `HTTP ${response.status}`
+      )
+    );
   }
 
   const responseText = extractText(payload);

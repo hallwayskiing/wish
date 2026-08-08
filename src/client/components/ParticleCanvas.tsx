@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 
 interface Particle {
   x: number;
@@ -26,7 +27,7 @@ const STAR_COLORS = [
   'rgba(255, 255, 255, 0.8)',
   'rgba(232, 220, 198, 0.9)',
   'rgba(207, 176, 126, 0.6)',
-  'rgba(200, 200, 210, 0.7)'
+  'rgba(200, 200, 210, 0.7)',
 ];
 
 export const ParticleCanvas: React.FC = () => {
@@ -47,17 +48,20 @@ export const ParticleCanvas: React.FC = () => {
 
     const createParticles = () => {
       const count = Math.floor((width * height) / 9000);
-      particles = Array.from({ length: count }, (): Particle => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        radius: Math.random() * 1.6 + 0.3,
-        color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
-        alpha: Math.random() * 0.8 + 0.15,
-        twinkleSpeed: (Math.random() * 0.012 + 0.003) * (Math.random() < 0.5 ? 1 : -1),
-        vx: (Math.random() - 0.5) * 0.1,
-        vy: (Math.random() - 0.5) * 0.1,
-        glow: Math.random() < 0.18
-      }));
+      particles = Array.from(
+        { length: count },
+        (): Particle => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: Math.random() * 1.6 + 0.3,
+          color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
+          alpha: Math.random() * 0.8 + 0.15,
+          twinkleSpeed: (Math.random() * 0.012 + 0.003) * (Math.random() < 0.5 ? 1 : -1),
+          vx: (Math.random() - 0.5) * 0.1,
+          vy: (Math.random() - 0.5) * 0.1,
+          glow: Math.random() < 0.18,
+        })
+      );
     };
 
     const initCanvas = () => {
@@ -75,7 +79,7 @@ export const ParticleCanvas: React.FC = () => {
           length: Math.random() * 80 + 40,
           speed: Math.random() * 5 + 3,
           angle: Math.PI / 4 + (Math.random() - 0.5) * 0.3,
-          alpha: 0.8
+          alpha: 0.8,
         });
       }
     };

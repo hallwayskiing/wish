@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDebounce } from '../../hooks/useDebounce.js';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CATEGORY_NAMES, isCategoryId } from '../../../categories.js';
-import { UnpaginatedWishListResult, Wish } from '../../types.js';
+import { useDebounce } from '../../hooks/useDebounce.js';
+import type { UnpaginatedWishListResult, Wish } from '../../types.js';
 import { adminApi } from '../api.js';
 import { AdminWishCard } from './AdminWishCard.js';
 
@@ -18,7 +19,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onUnauthorized }
   const [isLoading, setIsLoading] = useState(false);
   const [notice, setNotice] = useState<{ message: string; isError: boolean }>({
     message: '',
-    isError: false
+    isError: false,
   });
   const noticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wishesRequestRef = useRef<AbortController | null>(null);
@@ -48,7 +49,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onUnauthorized }
     wishesRequestRef.current = controller;
     setIsLoading(true);
     try {
-      const data = await adminApi<UnpaginatedWishListResult>('/wishes', { signal: controller.signal });
+      const data = await adminApi<UnpaginatedWishListResult>('/wishes', {
+        signal: controller.signal,
+      });
       if (controller.signal.aborted) return;
       setWishes(data.wishes || []);
       setListVersion(version => version + 1);
@@ -114,10 +117,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onUnauthorized }
           </p>
         </div>
         <div className="header-actions">
-          <a className="btn-secondary nav-link-btn" href="/" target="_blank" rel="noopener noreferrer">
+          <a
+            className="btn-secondary nav-link-btn"
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <span>查看前台</span> ↗
           </a>
-          <button className="btn-secondary logout-btn" id="logoutButton" type="button" onClick={onLogout}>
+          <button
+            className="btn-secondary logout-btn"
+            id="logoutButton"
+            type="button"
+            onClick={onLogout}
+          >
             退出登录
           </button>
         </div>

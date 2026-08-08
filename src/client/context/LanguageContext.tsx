@@ -1,12 +1,14 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Language } from '../types.js';
-import { translations, translate, TranslationDictionary } from '../translations.js';
+import type React from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
+import { type TranslationDictionary, translate, translations } from '../translations.js';
+import type { Language } from '../types.js';
 
 const LANGUAGE_STORAGE_KEY = 'wish_app_language';
 const LEGACY_LANGUAGE_STORAGE_KEY = 'wish_language';
 
 function getInitialLanguage(): Language {
-  const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
+  const saved =
+    localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
   if (saved === 'zh' || saved === 'en') {
     if (!localStorage.getItem(LANGUAGE_STORAGE_KEY)) {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, saved);
@@ -53,7 +55,9 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage, t, dict: translations[language] }}>
+    <LanguageContext.Provider
+      value={{ language, setLanguage, toggleLanguage, t, dict: translations[language] }}
+    >
       {children}
     </LanguageContext.Provider>
   );

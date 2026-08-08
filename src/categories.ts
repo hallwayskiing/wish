@@ -4,7 +4,7 @@ export const CATEGORY_IDS = Object.freeze([
   'study',
   'love',
   'health',
-  'creative'
+  'creative',
 ] as const);
 
 export type CategoryId = (typeof CATEGORY_IDS)[number];
@@ -25,29 +25,34 @@ export const CATEGORY_ICONS: Readonly<Record<CategoryId, string>> = Object.freez
   study: '🎓',
   love: '💖',
   health: '🏃',
-  creative: '💡'
+  creative: '💡',
 });
 
-export const CATEGORY_NAMES: Readonly<Record<'zh' | 'en', Readonly<Record<CategoryId, string>>>> = Object.freeze({
-  zh: Object.freeze({
-    growth: '个人成长',
-    career: '事业突破',
-    study: '学业成名',
-    love: '真挚情感',
-    health: '健康生活',
-    creative: '奇思妙想'
-  }),
-  en: Object.freeze({
-    growth: 'Growth',
-    career: 'Career',
-    study: 'Learning',
-    love: 'Relationships',
-    health: 'Health',
-    creative: 'Creativity'
-  })
-});
+export const CATEGORY_NAMES: Readonly<Record<'zh' | 'en', Readonly<Record<CategoryId, string>>>> =
+  Object.freeze({
+    zh: Object.freeze({
+      growth: '个人成长',
+      career: '事业突破',
+      study: '学业成名',
+      love: '真挚情感',
+      health: '健康生活',
+      creative: '奇思妙想',
+    }),
+    en: Object.freeze({
+      growth: 'Growth',
+      career: 'Career',
+      study: 'Learning',
+      love: 'Relationships',
+      health: 'Health',
+      creative: 'Creativity',
+    }),
+  });
 
-export function getCategoryName(category: string, language: 'zh' | 'en' = 'zh', fallback = ''): string {
+export function getCategoryName(
+  category: string,
+  language: 'zh' | 'en' = 'zh',
+  fallback = ''
+): string {
   const locale = language === 'en' ? 'en' : 'zh';
   return isCategoryId(category) ? CATEGORY_NAMES[locale][category] : fallback;
 }

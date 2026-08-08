@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { getCategoryName } from '../../categories.js';
 import { WishAPI } from '../api.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import { useDialogA11y } from '../hooks/useDialogA11y.js';
-import { AIPlanPhase, Wish } from '../types.js';
+import type { AIPlanPhase, Wish } from '../types.js';
 
 interface PlanModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({
   isDraft = false,
   onClose,
   onSaved,
-  onShowToast
+  onShowToast,
 }) => {
   const { language, t } = useLanguage();
   const [isSaving, setIsSaving] = useState(false);
@@ -32,10 +33,13 @@ export const PlanModal: React.FC<PlanModalProps> = ({
   const plan = wish.aiPlan || {};
   const categoryName = getCategoryName(wish.category, language, t('beautifulWish'));
 
-  const dateStr = new Date(wish.createdAt).toLocaleString(
-    language === 'en' ? 'en-US' : 'zh-CN',
-    { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }
-  );
+  const dateStr = new Date(wish.createdAt).toLocaleString(language === 'en' ? 'en-US' : 'zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   const rawSteps: AIPlanPhase[] = plan.roadmap || plan.phases || [];
   const habitsList = plan.habitsAndTools || plan.habits || [];
@@ -80,7 +84,13 @@ export const PlanModal: React.FC<PlanModalProps> = ({
   };
 
   return (
-    <div className="modal-backdrop show" id="planModal" onClick={onClose}>
+    <div className="modal-backdrop show" id="planModal">
+      <button
+        type="button"
+        className="modal-overlay"
+        aria-label={t('closeModal')}
+        onClick={onClose}
+      />
       <div
         ref={dialogRef}
         className="modal-dialog large-modal glass-panel"
@@ -88,7 +98,6 @@ export const PlanModal: React.FC<PlanModalProps> = ({
         aria-modal="true"
         aria-labelledby="modalWishTitle"
         tabIndex={-1}
-        onClick={e => e.stopPropagation()}
       >
         <button
           className="close-modal-btn"
@@ -128,16 +137,14 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <h3 className="section-title">{t('roadmapTitle')}</h3>
             <div className="roadmap-timeline" id="planRoadmap">
               {rawSteps.map((step, idx) => (
-                <div key={idx} className="roadmap-step-card">
+                <div key={`${step.phase}-${step.title ?? step.name}`} className="roadmap-step-card">
                   <div className="step-header">
                     <span className="step-phase">{getPhaseHeading(step, idx)}</span>
                     <span className="step-timeline">
                       ⏱️ {step.timeline || t('timelineFallback')}
                     </span>
                   </div>
-                  <div className="step-title">
-                    {step.title || step.name || t('taskFallback')}
-                  </div>
+                  <div className="step-title">{step.title || step.name || t('taskFallback')}</div>
                   <div className="step-action">
                     {step.action || (Array.isArray(step.tasks) ? step.tasks.join('; ') : '')}
                   </div>
@@ -150,8 +157,8 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <div className="plan-box box-habits">
               <h4>{t('habitsTitle')}</h4>
               <ul id="planHabits">
-                {habitsList.map((item, idx) => (
-                  <li key={idx}>{item}</li>
+                {habitsList.map(item => (
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
@@ -159,8 +166,8 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <div className="plan-box box-pitfalls">
               <h4>{t('pitfallsTitle')}</h4>
               <ul id="planPitfalls">
-                {pitfallsList.map((item, idx) => (
-                  <li key={idx}>{item}</li>
+                {pitfallsList.map(item => (
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
@@ -175,12 +182,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({
         </div>
 
         <div className="modal-footer" id="planModalFooter">
-          <button
-            className="btn-secondary"
-            id="closeDraftBtn"
-            onClick={onClose}
-            type="button"
-          >
+          <button className="btn-secondary" id="closeDraftBtn" onClick={onClose} type="button">
             {t('close')}
           </button>
           {isDraft ? (
@@ -204,8 +206,8 @@ export const PlanModal: React.FC<PlanModalProps> = ({
               {isCompleting
                 ? t('completingWish')
                 : wish.status === 'completed'
-                ? t('alreadyCompleted')
-                : t('completeWish')}
+                  ? t('alreadyCompleted')
+                  : t('completeWish')}
             </button>
           )}
         </div>

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { CATEGORY_NAMES } from '../../../categories.js';
-import { AIPlan, AIPlanPhase, Wish } from '../../types.js';
+import type { AIPlan, AIPlanPhase, Wish } from '../../types.js';
 import { adminApi } from '../api.js';
 import { PlanEditorModal } from './PlanEditorModal.js';
 
@@ -20,25 +21,34 @@ function normalizeAiPlan(plan: AIPlan): AIPlan {
   const normalized: AIPlan = {
     ...plan,
     inspiration: trimValue(plan.inspiration),
-    firstStep: trimValue(plan.firstStep)
+    firstStep: trimValue(plan.firstStep),
   };
 
   if (Array.isArray(plan.roadmap)) {
     const roadmap = plan.roadmap
-      .map((step): AIPlanPhase => ({
-        ...step,
-        phase: trimValue(step.phase),
-        name: trimValue(step.name),
-        title: trimValue(step.title),
-        action: trimValue(step.action),
-        timeline: trimValue(step.timeline),
-        tasks: Array.isArray(step.tasks)
-          ? step.tasks.map(task => task.trim()).filter(Boolean)
-          : step.tasks
-      }))
-      .filter(step => Boolean(
-        step.phase || step.name || step.title || step.action || step.timeline || step.tasks?.length
-      ));
+      .map(
+        (step): AIPlanPhase => ({
+          ...step,
+          phase: trimValue(step.phase),
+          name: trimValue(step.name),
+          title: trimValue(step.title),
+          action: trimValue(step.action),
+          timeline: trimValue(step.timeline),
+          tasks: Array.isArray(step.tasks)
+            ? step.tasks.map(task => task.trim()).filter(Boolean)
+            : step.tasks,
+        })
+      )
+      .filter(step =>
+        Boolean(
+          step.phase ||
+            step.name ||
+            step.title ||
+            step.action ||
+            step.timeline ||
+            step.tasks?.length
+        )
+      );
     normalized.roadmap = roadmap;
   }
 
@@ -57,7 +67,7 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
   onUpdated,
   onDeleted,
   onShowNotice,
-  onUnauthorized
+  onUnauthorized,
 }) => {
   const [title, setTitle] = useState(wish.title || '');
   const [category, setCategory] = useState(wish.category || 'growth');
@@ -76,7 +86,7 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -84,16 +94,19 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
     if (isSaving) return;
     setIsSaving(true);
     try {
-      const res = await adminApi<{ success: boolean; wish: Wish }>(`/wishes/${encodeURIComponent(wish.id)}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          title,
-          category,
-          blessings: Number(blessings),
-          status,
-          aiPlan: normalizeAiPlan(aiPlan)
-        })
-      });
+      const res = await adminApi<{ success: boolean; wish: Wish }>(
+        `/wishes/${encodeURIComponent(wish.id)}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            title,
+            category,
+            blessings: Number(blessings),
+            status,
+            aiPlan: normalizeAiPlan(aiPlan),
+          }),
+        }
+      );
       setTitle(res.wish.title);
       setCategory(res.wish.category);
       setBlessings(res.wish.blessings);
@@ -120,7 +133,7 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
     setIsDeleting(true);
     try {
       await adminApi<{ success: boolean }>(`/wishes/${encodeURIComponent(wish.id)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
       onDeleted(wish.id);
       onShowNotice('愿望已删除。');
@@ -144,7 +157,9 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
       </div>
 
       <div className="field wish-title-field">
-        <label className="field-label" htmlFor={`wish-title-${wish.id}`}>愿望内容</label>
+        <label className="field-label" htmlFor={`wish-title-${wish.id}`}>
+          愿望内容
+        </label>
         <textarea
           id={`wish-title-${wish.id}`}
           className="wish-title-input"
@@ -155,7 +170,9 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
       </div>
 
       <div className="field">
-        <label className="field-label" htmlFor={`wish-category-${wish.id}`}>分类领域</label>
+        <label className="field-label" htmlFor={`wish-category-${wish.id}`}>
+          分类领域
+        </label>
         <select
           id={`wish-category-${wish.id}`}
           className="wish-category-select"
@@ -171,7 +188,9 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
       </div>
 
       <div className="field">
-        <label className="field-label" htmlFor={`wish-blessings-${wish.id}`}>助愿能量数</label>
+        <label className="field-label" htmlFor={`wish-blessings-${wish.id}`}>
+          助愿能量数
+        </label>
         <input
           id={`wish-blessings-${wish.id}`}
           className="wish-blessings-input"
@@ -185,7 +204,9 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
       </div>
 
       <div className="field">
-        <label className="field-label" htmlFor={`wish-status-${wish.id}`}>心愿状态</label>
+        <label className="field-label" htmlFor={`wish-status-${wish.id}`}>
+          心愿状态
+        </label>
         <select
           id={`wish-status-${wish.id}`}
           className="wish-status-select"
@@ -198,12 +219,7 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
       </div>
 
       <div className="card-actions">
-        <button
-          type="button"
-          className="save-button"
-          onClick={handleSave}
-          disabled={isSaving}
-        >
+        <button type="button" className="save-button" onClick={handleSave} disabled={isSaving}>
           {isSaving ? '保存中...' : '保存变更'}
         </button>
         <button

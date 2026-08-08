@@ -7,7 +7,8 @@
 ```bash
 npm install          # install
 npm run check        # tsc --noEmit — must pass
-npm run lint         # eslint . — must pass
+npm run lint         # biome check . — must pass (0 error, 0 warning)
+npm run format       # biome check --write . — format & fix
 npm run build        # vite build — must pass
 npm run dev          # local dev (Vite + Workers, http://localhost:5173)
 npm run db:migrate:local   # apply D1 migrations locally
@@ -51,10 +52,12 @@ migrations/  wrangler.jsonc  vite.config.ts  tsconfig.json
 
 - `WishWall` must handle `AbortController` cancellation.
 - Poster `src/client/poster.ts` — handle `wrapPosterText` for cross-language wrapping and `document.fonts.ready`.
-- Dialogs use `useDialogA11y` (`aria-modal`, `data-dialog-close`, `Escape`).
+- Dialogs use `useDialogA11y` (`aria-modal`, `data-dialog-close`, `Escape`); backdrop uses `modal-overlay` button + `role=dialog` sibling pattern (no `biome-ignore`).
+- Styles: `fieldset.category-selector` must be reset (`border:0; padding:0; margin:0; min-width:0`) — `legend` carries `section-label`.
+- Lint/Formatting: single tool `Biome` (`biome.json`, `preset: recommended` + all rules `error`); no `eslint`/`prettier` — use `npm run lint` / `npm run format`, never suppress a11y/complexity.
 
 ## Workflow
 
-- CI on `main`: Node 22 -> `npm ci` -> `check` -> `lint` -> `release`; requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`.
+- CI on `main` (Node 24): `npm ci` -> `check` -> `lint` (`biome check .`) -> `release`; requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`.
 - `release` = build -> remote D1 migrations -> deploy. `deploy` only invokes Wrangler. Production runs are serialized.
 - Prohibited: edit `node_modules/ dist/ .wrangler/`, commit `.dev.vars` / `.DS_Store` / secrets, or run `npm run release` / `npm run deploy` / `wrangler deploy` / `db:migrate:remote` without explicit user confirmation.

@@ -1,5 +1,6 @@
-import React, { useState, useId } from 'react';
-import { AIPlan, AIPlanPhase } from '../../types.js';
+import type React from 'react';
+import { useId, useState } from 'react';
+import type { AIPlan, AIPlanPhase } from '../../types.js';
 
 interface PlanEditorModalProps {
   initialPlan?: AIPlan;
@@ -14,11 +15,13 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
     Array.isArray(initialPlan.roadmap)
       ? initialPlan.roadmap
       : Array.isArray(initialPlan.phases)
-      ? initialPlan.phases
-      : []
+        ? initialPlan.phases
+        : []
   );
   const [habitsAndTools, setHabitsAndTools] = useState<string[]>(
-    Array.isArray(initialPlan.habitsAndTools) ? initialPlan.habitsAndTools : initialPlan.habits || []
+    Array.isArray(initialPlan.habitsAndTools)
+      ? initialPlan.habitsAndTools
+      : initialPlan.habits || []
   );
   const [pitfalls, setPitfalls] = useState<string[]>(
     Array.isArray(initialPlan.pitfalls) ? initialPlan.pitfalls : []
@@ -36,7 +39,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
       roadmap: newRoadmap,
       habitsAndTools: newHabits,
       pitfalls: newPitfalls,
-      firstStep: newFirstStep
+      firstStep: newFirstStep,
     });
   };
 
@@ -45,7 +48,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
     roadmap,
     habitsAndTools,
     pitfalls,
-    firstStep
+    firstStep,
   };
 
   const handleStepChange = (index: number, field: keyof AIPlanPhase, value: string) => {
@@ -131,7 +134,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         </div>
         <div className="roadmap-steps-list">
           {roadmap.map((step, idx) => (
-            <div key={idx} className="roadmap-step-editor">
+            <div key={`${step.phase}-${step.title ?? step.name}`} className="roadmap-step-editor">
               <div className="roadmap-step-header">
                 <span className="step-num-badge">阶段 {idx + 1}</span>
                 <button
@@ -144,7 +147,9 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
               </div>
               <div className="step-grid-2">
                 <div className="field">
-                  <label className="field-label" htmlFor={`${idPrefix}-phase-${idx}`}>阶段名称</label>
+                  <label className="field-label" htmlFor={`${idPrefix}-phase-${idx}`}>
+                    阶段名称
+                  </label>
                   <input
                     id={`${idPrefix}-phase-${idx}`}
                     type="text"
@@ -155,7 +160,9 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
                   />
                 </div>
                 <div className="field">
-                  <label className="field-label" htmlFor={`${idPrefix}-timeline-${idx}`}>预计周期</label>
+                  <label className="field-label" htmlFor={`${idPrefix}-timeline-${idx}`}>
+                    预计周期
+                  </label>
                   <input
                     id={`${idPrefix}-timeline-${idx}`}
                     type="text"
@@ -167,7 +174,9 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
                 </div>
               </div>
               <div className="field">
-                <label className="field-label" htmlFor={`${idPrefix}-title-${idx}`}>阶段主题</label>
+                <label className="field-label" htmlFor={`${idPrefix}-title-${idx}`}>
+                  阶段主题
+                </label>
                 <input
                   id={`${idPrefix}-title-${idx}`}
                   type="text"
@@ -178,7 +187,9 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
                 />
               </div>
               <div className="field">
-                <label className="field-label" htmlFor={`${idPrefix}-action-${idx}`}>具体行动方案</label>
+                <label className="field-label" htmlFor={`${idPrefix}-action-${idx}`}>
+                  具体行动方案
+                </label>
                 <textarea
                   id={`${idPrefix}-action-${idx}`}
                   className="plan-form-textarea step-action-input"
@@ -202,7 +213,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         </div>
         <div className="dynamic-items-list">
           {habitsAndTools.map((habit, idx) => (
-            <div key={idx} className="dynamic-item-row">
+            <div key={habit} className="dynamic-item-row">
               <input
                 id={`${idPrefix}-habit-${idx}`}
                 type="text"
@@ -234,7 +245,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         </div>
         <div className="dynamic-items-list">
           {pitfalls.map((pitfall, idx) => (
-            <div key={idx} className="dynamic-item-row">
+            <div key={pitfall} className="dynamic-item-row">
               <input
                 id={`${idPrefix}-pitfall-${idx}`}
                 type="text"

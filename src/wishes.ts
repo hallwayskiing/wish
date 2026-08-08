@@ -2,14 +2,14 @@ import { CATEGORY_NAMES, normalizeCategory } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { generatePlan } from './model.js';
 import { serverMessage } from './server-messages.js';
-import { Env, Wish, WishListResult, RawWishRow } from './types.js';
+import type { Env, RawWishRow, Wish, WishListResult } from './types.js';
 import {
   bindStatement,
   MAX_PLAN_LENGTH,
   parseWishRow,
   serializePlan,
   VALID_CATEGORIES,
-  WISH_FIELDS
+  WISH_FIELDS,
 } from './wish-data.js';
 
 const WISH_ID_PATTERN = /^wish_[a-zA-Z0-9_-]+$/;
@@ -45,7 +45,7 @@ export async function createWishDraft(request: Request): Promise<Response> {
       wish: title,
       category,
       apiKey: body?.customApiKey,
-      language
+      language,
     });
     return json({
       success: true,
@@ -56,8 +56,8 @@ export async function createWishDraft(request: Request): Promise<Response> {
         categoryName: CATEGORY_NAMES[language][category],
         createdAt: new Date().toISOString(),
         blessings: 0,
-        aiPlan
-      }
+        aiPlan,
+      },
     });
   } catch (error: unknown) {
     console.error('Wish generation error:', error);
@@ -96,30 +96,32 @@ export async function saveWish(request: Request, env: Env): Promise<Response> {
   const category = normalizeCategory(draft.category);
   const parsedDate = draft.createdAt ? Date.parse(draft.createdAt) : NaN;
   const savedWish: Wish = {
-    id: typeof draft.id === 'string' && WISH_ID_PATTERN.test(draft.id)
-      ? draft.id
-      : createWishId(),
+    id: typeof draft.id === 'string' && WISH_ID_PATTERN.test(draft.id) ? draft.id : createWishId(),
     title,
     category,
     categoryName: CATEGORY_NAMES[language][category],
-    createdAt: Number.isNaN(parsedDate) ? new Date().toISOString() : new Date(parsedDate).toISOString(),
+    createdAt: Number.isNaN(parsedDate)
+      ? new Date().toISOString()
+      : new Date(parsedDate).toISOString(),
     blessings: 0,
-    aiPlan: draft.aiPlan ?? {}
+    aiPlan: draft.aiPlan ?? {},
   };
 
   try {
     await env.DB.prepare(`
       INSERT INTO wishes (id, title, category, categoryName, createdAt, blessings, aiPlan)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      savedWish.id,
-      savedWish.title,
-      savedWish.category,
-      savedWish.categoryName,
-      savedWish.createdAt,
-      savedWish.blessings,
-      serializedPlan
-    ).run();
+    `)
+      .bind(
+        savedWish.id,
+        savedWish.title,
+        savedWish.category,
+        savedWish.categoryName,
+        savedWish.createdAt,
+        savedWish.blessings,
+        serializedPlan
+      )
+      .run();
 
     return json({ success: true, wish: savedWish }, 201);
   } catch (error: unknown) {
@@ -179,11 +181,14 @@ export async function listWishes(url: URL, env: Env): Promise<Response> {
     const queryParams: (string | number)[] = isPaginated
       ? [...params, limit, (page - 1) * limit]
       : params;
-    const result = await bindStatement(env.DB.prepare(`
+    const result = await bindStatement(
+      env.DB.prepare(`
       SELECT ${WISH_FIELDS}
       FROM wishes${where}
       ORDER BY createdAt DESC${pagination}
-    `), queryParams).all<RawWishRow>();
+    `),
+      queryParams
+    ).all<RawWishRow>();
 
     const wishList: Wish[] = (result.results || [])
       .map(parseWishRow)
@@ -195,7 +200,7 @@ export async function listWishes(url: URL, env: Env): Promise<Response> {
         total,
         page,
         limit,
-        totalPages
+        totalPages,
       };
       return json(response);
     }
@@ -208,17 +213,17 @@ export async function listWishes(url: URL, env: Env): Promise<Response> {
 
 export async function blessWish(id: string, env: Env): Promise<Response> {
   try {
-    const update = await env.DB.prepare(
-      'UPDATE wishes SET blessings = blessings + 1 WHERE id = ?'
-    ).bind(id).run();
+    const update = await env.DB.prepare('UPDATE wishes SET blessings = blessings + 1 WHERE id = ?')
+      .bind(id)
+      .run();
 
     if (!update.meta?.changes) {
       return json({ error: serverMessage('zh', 'notFound') }, 404);
     }
 
-    const row = await env.DB.prepare(
-      'SELECT blessings FROM wishes WHERE id = ?'
-    ).bind(id).first<{ blessings: number }>();
+    const row = await env.DB.prepare('SELECT blessings FROM wishes WHERE id = ?')
+      .bind(id)
+      .first<{ blessings: number }>();
     return json({ success: true, blessings: row?.blessings || 0 });
   } catch (error) {
     console.error('Wish blessing error:', error);
@@ -231,7 +236,9 @@ export async function completeWish(id: string, env: Env): Promise<Response> {
     const completedAt = new Date().toISOString();
     const result = await env.DB.prepare(
       "UPDATE wishes SET status = 'completed', completedAt = ? WHERE id = ?"
-    ).bind(completedAt, id).run();
+    )
+      .bind(completedAt, id)
+      .run();
 
     if (!result.meta?.changes) {
       return json({ error: serverMessage('zh', 'notFound') }, 404);

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext.js';
 import { useDialogA11y } from '../hooks/useDialogA11y.js';
 
@@ -13,13 +14,14 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   isOpen,
   apiKey,
   onClose,
-  onSaveApiKey
+  onSaveApiKey,
 }) => {
   const { t } = useLanguage();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const dialogRef = useDialogA11y(isOpen, onClose);
 
   useEffect(() => {
+    if (!isOpen) return;
     if (inputRef.current) {
       inputRef.current.value = apiKey;
     }
@@ -41,7 +43,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   };
 
   return (
-    <div className="modal-backdrop show" id="apiKeyModal" onClick={onClose}>
+    <div className="modal-backdrop show" id="apiKeyModal">
+      <button
+        type="button"
+        className="modal-overlay"
+        aria-label={t('closeModal')}
+        onClick={onClose}
+      />
       <div
         ref={dialogRef}
         className="modal-dialog glass-panel small-modal"
@@ -49,7 +57,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         aria-modal="true"
         aria-labelledby="apiKeyModalTitle"
         tabIndex={-1}
-        onClick={e => e.stopPropagation()}
       >
         <button
           className="close-modal-btn"
@@ -62,7 +69,9 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
           ✕
         </button>
         <div className="modal-header">
-          <h3 id="apiKeyModalTitle"><span aria-hidden="true">⚙️</span> {t('apiConfigTitle')}</h3>
+          <h3 id="apiKeyModalTitle">
+            <span aria-hidden="true">⚙️</span> {t('apiConfigTitle')}
+          </h3>
         </div>
         <div className="modal-body">
           <p className="api-modal-tip">{t('apiModalTip')}</p>

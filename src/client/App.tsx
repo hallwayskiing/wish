@@ -1,25 +1,28 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './styles/style.css';
 import './styles/wish.css';
 import './styles/modal.css';
 import './styles/wall.css';
 
-import { LanguageProvider, useLanguage } from './context/LanguageContext.js';
-import { ParticleCanvas } from './components/ParticleCanvas.js';
-import { Header } from './components/Header.js';
-import { WishHero } from './components/WishHero.js';
-import { WishWall, WishWallRef } from './components/WishWall.js';
-import { Footer } from './components/Footer.js';
 import { ApiKeyModal } from './components/ApiKeyModal.js';
+import { Footer } from './components/Footer.js';
+import { Header } from './components/Header.js';
+import { ParticleCanvas } from './components/ParticleCanvas.js';
 import { PlanModal } from './components/PlanModal.js';
 import { PosterModal } from './components/PosterModal.js';
-import { ToastContainer, ToastMessage } from './components/ToastContainer.js';
-import { Wish } from './types.js';
+import { ToastContainer, type ToastMessage } from './components/ToastContainer.js';
+import { WishHero } from './components/WishHero.js';
+import { WishWall, type WishWallRef } from './components/WishWall.js';
+import { LanguageProvider, useLanguage } from './context/LanguageContext.js';
+import type { Wish } from './types.js';
 
 const MainContent: React.FC = () => {
   const { t } = useLanguage();
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [customApiKey, setCustomApiKey] = useState<string>(() => localStorage.getItem('gemini_api_key') || '');
+  const [customApiKey, setCustomApiKey] = useState<string>(
+    () => localStorage.getItem('gemini_api_key') || ''
+  );
 
   // Modals state
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
@@ -31,7 +34,7 @@ const MainContent: React.FC = () => {
   }>({
     isOpen: false,
     wish: null,
-    isDraft: false
+    isDraft: false,
   });
 
   const [posterModalState, setPosterModalState] = useState<{
@@ -41,7 +44,7 @@ const MainContent: React.FC = () => {
   }>({
     isOpen: false,
     blob: null,
-    filename: ''
+    filename: '',
   });
   const [posterVersion, setPosterVersion] = useState(0);
 
@@ -51,7 +54,9 @@ const MainContent: React.FC = () => {
   useEffect(() => {
     const timers = toastTimersRef.current;
     return () => {
-      timers.forEach(timer => clearTimeout(timer));
+      timers.forEach(timer => {
+        clearTimeout(timer);
+      });
       timers.clear();
     };
   }, []);
@@ -80,7 +85,7 @@ const MainContent: React.FC = () => {
     setPlanModalState({
       isOpen: true,
       wish,
-      isDraft: true
+      isDraft: true,
     });
   };
 
@@ -88,7 +93,7 @@ const MainContent: React.FC = () => {
     setPlanModalState({
       isOpen: true,
       wish,
-      isDraft: false
+      isDraft: false,
     });
   };
 
@@ -97,7 +102,7 @@ const MainContent: React.FC = () => {
     setPosterModalState({
       isOpen: true,
       blob,
-      filename
+      filename,
     });
   };
 

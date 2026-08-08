@@ -1,6 +1,6 @@
 import { json, parseJsonBody } from './http.js';
 import { serverMessage } from './server-messages.js';
-import { Env } from './types.js';
+import type { Env } from './types.js';
 
 const ADMIN_COOKIE = 'wish_admin_session';
 const SESSION_SECONDS = 24 * 60 * 60;
@@ -73,7 +73,7 @@ export async function adminLogin(request: Request, env: Env): Promise<Response> 
   const submittedPassword = typeof body?.password === 'string' ? body.password : '';
   const [submittedHash, expectedHash] = await Promise.all([
     sha256(submittedPassword),
-    sha256(password)
+    sha256(password),
   ]);
   if (!constantTimeEqual(submittedHash, expectedHash)) {
     return json({ error: serverMessage('zh', 'invalidPassword') }, 401);
@@ -82,12 +82,12 @@ export async function adminLogin(request: Request, env: Env): Promise<Response> 
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_SECONDS;
   const token = await signSession(expiresAt, password);
   return json({ success: true }, 200, {
-    'set-cookie': `${ADMIN_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_SECONDS}`
+    'set-cookie': `${ADMIN_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_SECONDS}`,
   });
 }
 
 export function adminLogout(): Response {
   return json({ success: true }, 200, {
-    'set-cookie': `${ADMIN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`
+    'set-cookie': `${ADMIN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`,
   });
 }

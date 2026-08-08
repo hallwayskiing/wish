@@ -10,14 +10,14 @@ export async function siteQrCode(request: Request): Promise<Response> {
     errorCorrectionLevel: 'M',
     color: {
       dark: '#17100d',
-      light: '#f7f0e4'
-    }
+      light: '#f7f0e4',
+    },
   });
 
   return new Response(svg, {
     headers: {
       'content-type': 'image/svg+xml; charset=utf-8',
-      'cache-control': 'public, max-age=86400'
-    }
+      'cache-control': 'public, max-age=86400',
+    },
   });
 }

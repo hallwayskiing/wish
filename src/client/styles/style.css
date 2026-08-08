@@ -20,9 +20,9 @@
 
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-soft: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.10);
+  --border-medium: rgba(255, 255, 255, 0.1);
   --border-strong: rgba(255, 255, 255, 0.15);
-  --border-accent: rgba(207, 176, 126, 0.30);
+  --border-accent: rgba(207, 176, 126, 0.3);
   --border-accent-soft: rgba(207, 176, 126, 0.18);
   --border-accent-strong: rgba(207, 176, 126, 0.35);
 
@@ -30,7 +30,7 @@
   --accent-dim: #a8905f;
   --accent-faint: rgba(207, 176, 126, 0.07);
   --accent-glow: rgba(207, 176, 126, 0.08);
-  --accent-muted: rgba(207, 176, 126, 0.10);
+  --accent-muted: rgba(207, 176, 126, 0.1);
   --accent-soft: rgba(207, 176, 126, 0.12);
   --accent-strong: rgba(207, 176, 126, 0.4);
 
@@ -45,7 +45,7 @@
   --danger-soft: rgba(255, 92, 124, 0.12);
   --success: #4ade80;
 
-  --font-sans: 'Plus Jakarta Sans', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Noto Sans SC", system-ui, -apple-system, sans-serif;
   --radius-xs: 6px;
   --radius-control: 8px;
   --radius-sm: 10px;
@@ -79,7 +79,9 @@
 }
 
 /* Reset */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -126,8 +128,9 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  transition: border-color var(--duration-normal) var(--ease-in-out),
-              box-shadow var(--duration-normal) var(--ease-in-out);
+  transition:
+    border-color var(--duration-normal) var(--ease-in-out),
+    box-shadow var(--duration-normal) var(--ease-in-out);
 }
 
 .glass-panel:hover {
@@ -187,8 +190,9 @@ body {
   padding: 0.4rem 0.85rem;
   border-radius: var(--radius-pill);
   outline: none;
-  transition: color var(--duration-fast) var(--ease-in-out),
-              background var(--duration-fast) var(--ease-in-out);
+  transition:
+    color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -333,11 +337,22 @@ body {
 }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes toastOut {
-  from { opacity: 1; }
-  to { opacity: 0; transform: translateY(-8px); }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
 }

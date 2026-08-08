@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 
 interface LoginPanelProps {
   onLogin: (password: string) => Promise<void>;
@@ -35,13 +36,17 @@ export const LoginPanel: React.FC<LoginPanelProps> = ({ onLogin, errorMessage })
             type="password"
             autoComplete="current-password"
             required
-            autoFocus
             placeholder="输入管理员密码"
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
         </div>
-        <button className="btn-primary login-btn" id="loginButton" type="submit" disabled={isSubmitting}>
+        <button
+          className="btn-primary login-btn"
+          id="loginButton"
+          type="submit"
+          disabled={isSubmitting}
+        >
           <span className="btn-stars">✦</span>
           <span className="btn-text">{isSubmitting ? '验证中...' : '验证并登录'}</span>
         </button>

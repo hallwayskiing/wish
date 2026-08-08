@@ -55,7 +55,7 @@
 }
 
 .wish-card-form::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -63,6 +63,19 @@
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, var(--border-accent) 50%, transparent 100%);
   pointer-events: none;
+}
+
+.category-selector {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.category-selector legend {
+  padding: 0;
+  float: left;
+  width: 100%;
 }
 
 .section-label {
@@ -229,18 +242,31 @@ textarea#wishInput::placeholder {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes spinReverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .loading-title {
@@ -274,8 +300,20 @@ textarea#wishInput::placeholder {
 }
 
 @media (max-width: 768px) {
-  .hero-title { font-size: 1.6rem; white-space: normal; }
-  .hero-subtitle { font-size: 0.92rem; white-space: normal; }
-  .category-pills { overflow-x: auto; scrollbar-width: none; }
-  .cat-pill { flex: 0 0 auto; padding: 0.45rem 0.9rem; }
+  .hero-title {
+    font-size: 1.6rem;
+    white-space: normal;
+  }
+  .hero-subtitle {
+    font-size: 0.92rem;
+    white-space: normal;
+  }
+  .category-pills {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cat-pill {
+    flex: 0 0 auto;
+    padding: 0.45rem 0.9rem;
+  }
 }

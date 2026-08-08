@@ -42,7 +42,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenApiKeyModal }) => {
     <header className="app-header">
       <div className="header-container">
         <div className="logo">
-          <span className="logo-icon" aria-hidden="true">✦</span>
+          <span className="logo-icon" aria-hidden="true">
+            ✦
+          </span>
           <span className="logo-text">{t('brand')}</span>
         </div>
         <nav className="nav-links" aria-label={t('primaryNavLabel')}>
@@ -69,7 +71,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenApiKeyModal }) => {
             onClick={onOpenApiKeyModal}
             type="button"
           >
-            <span className="key-icon" aria-hidden="true">⚙️</span> Google API
+            <span className="key-icon" aria-hidden="true">
+              ⚙️
+            </span>{' '}
+            Google API
           </button>
           <button
             className="api-key-btn language-toggle-btn"

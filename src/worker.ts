@@ -1,5 +1,5 @@
 import { handleApiRequest } from './routes.js';
-import { Env } from './types.js';
+import type { Env } from './types.js';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -15,5 +15,5 @@ export default {
     }
     if (!env.ASSETS) throw new Error('ASSETS binding unavailable');
     return env.ASSETS.fetch(request);
-  }
+  },
 } satisfies ExportedHandler<Env>;

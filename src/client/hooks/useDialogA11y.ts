@@ -1,6 +1,9 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 
-export function useDialogA11y(isOpen: boolean, onClose: () => void): RefObject<HTMLDivElement | null> {
+export function useDialogA11y(
+  isOpen: boolean,
+  onClose: () => void
+): RefObject<HTMLDivElement | null> {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const onCloseRef = useRef(onClose);
 
@@ -11,9 +14,8 @@ export function useDialogA11y(isOpen: boolean, onClose: () => void): RefObject<H
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const previousActiveElement = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    const previousActiveElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousBodyOverflow = document.body.style.overflow;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {

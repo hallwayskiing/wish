@@ -24,25 +24,24 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
   const placeholder = `${defaultExample}...`;
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
+    if (!isLoading) return;
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) return prev;
+        return Math.min(90, prev + Math.floor(Math.random() * 8) + 3);
+      });
+    }, 400);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
-    if (isLoading) {
-      let pct = 5;
-
-      interval = setInterval(() => {
-        if (pct < 90) {
-          pct = Math.min(90, pct + Math.floor(Math.random() * 8) + 3);
-          setProgress(pct);
-          const nextIdx = Math.min(dict.loadingPhrases.length - 1, Math.floor(pct / 25));
-          setLoadingPhraseIndex(nextIdx);
-        }
-      }, 300);
-    }
-
-    return () => {
-      if (interval !== null) clearInterval(interval);
-    };
-  }, [isLoading, dict.loadingPhrases]);
+  useEffect(() => {
+    if (!isLoading) return;
+    const nextIdx = Math.min(
+      dict.loadingPhrases.length - 1,
+      Math.floor((progress / 100) * dict.loadingPhrases.length)
+    );
+    setLoadingPhraseIndex(nextIdx);
+  }, [progress, dict.loadingPhrases, isLoading]);
 
   useEffect(() => {
     return () => {

@@ -1,6 +1,6 @@
 export type Language = 'zh' | 'en';
 
-export type TranslateFn = (key: string) => string;
+export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
 export interface Env {
   DB: D1Database;
@@ -19,6 +19,7 @@ export interface AIPlanPhase {
 }
 
 export interface AIPlan {
+  summary?: string;
   inspiration?: string;
   timeline?: string;
   roadmap?: AIPlanPhase[];

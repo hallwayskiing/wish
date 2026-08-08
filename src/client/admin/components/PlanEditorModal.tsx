@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { AIPlan, AIPlanPhase } from '../../types.js';
 
 interface PlanEditorModalProps {
@@ -9,6 +9,7 @@ interface PlanEditorModalProps {
 
 export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = {}, onChange }) => {
   const idPrefix = useId().replace(/:/g, '');
+  const [summary, setSummary] = useState(initialPlan.summary || '');
   const [inspiration, setInspiration] = useState(initialPlan.inspiration || '');
   const [firstStep, setFirstStep] = useState(initialPlan.firstStep || '');
   const [roadmap, setRoadmap] = useState<AIPlanPhase[]>(
@@ -27,23 +28,49 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
     Array.isArray(initialPlan.pitfalls) ? initialPlan.pitfalls : []
   );
 
-  const notifyChange = (
-    newInsp = inspiration,
-    newRoadmap = roadmap,
-    newHabits = habitsAndTools,
-    newPitfalls = pitfalls,
-    newFirstStep = firstStep
-  ) => {
+  useEffect(() => {
+    setSummary(initialPlan.summary || '');
+  }, [initialPlan.summary]);
+  useEffect(() => {
+    setInspiration(initialPlan.inspiration || '');
+  }, [initialPlan.inspiration]);
+  useEffect(() => {
+    setFirstStep(initialPlan.firstStep || '');
+  }, [initialPlan.firstStep]);
+  useEffect(() => {
+    setRoadmap(
+      Array.isArray(initialPlan.roadmap)
+        ? initialPlan.roadmap
+        : Array.isArray(initialPlan.phases)
+          ? initialPlan.phases
+          : []
+    );
+  }, [initialPlan.roadmap, initialPlan.phases]);
+  useEffect(() => {
+    setHabitsAndTools(
+      Array.isArray(initialPlan.habitsAndTools)
+        ? initialPlan.habitsAndTools
+        : initialPlan.habits || []
+    );
+  }, [initialPlan.habitsAndTools, initialPlan.habits]);
+  useEffect(() => {
+    setPitfalls(Array.isArray(initialPlan.pitfalls) ? initialPlan.pitfalls : []);
+  }, [initialPlan.pitfalls]);
+
+  const notifyChange = (patch: Partial<AIPlan>) => {
     onChange({
-      inspiration: newInsp,
-      roadmap: newRoadmap,
-      habitsAndTools: newHabits,
-      pitfalls: newPitfalls,
-      firstStep: newFirstStep,
+      summary,
+      inspiration,
+      roadmap,
+      habitsAndTools,
+      pitfalls,
+      firstStep,
+      ...patch,
     });
   };
 
-  const debugPlan: AIPlan = {
+  const previewPlan: AIPlan = {
+    summary,
     inspiration,
     roadmap,
     habitsAndTools,
@@ -52,89 +79,105 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
   };
 
   const handleStepChange = (index: number, field: keyof AIPlanPhase, value: string) => {
-    const updated = [...roadmap];
-    updated[index] = { ...updated[index], [field]: value };
+    const updated = roadmap.map((step, idx) =>
+      idx === index ? { ...step, [field]: value } : step
+    );
     setRoadmap(updated);
-    notifyChange(inspiration, updated, habitsAndTools, pitfalls, firstStep);
+    notifyChange({ roadmap: updated });
   };
 
   const handleAddStep = () => {
     const updated = [...roadmap, { phase: '', timeline: '', title: '', action: '' }];
     setRoadmap(updated);
-    notifyChange(inspiration, updated, habitsAndTools, pitfalls, firstStep);
+    notifyChange({ roadmap: updated });
   };
 
   const handleRemoveStep = (index: number) => {
     const updated = roadmap.filter((_, idx) => idx !== index);
     setRoadmap(updated);
-    notifyChange(inspiration, updated, habitsAndTools, pitfalls, firstStep);
+    notifyChange({ roadmap: updated });
   };
 
   const handleHabitChange = (index: number, value: string) => {
-    const updated = [...habitsAndTools];
-    updated[index] = value;
+    const updated = habitsAndTools.map((item, idx) => (idx === index ? value : item));
     setHabitsAndTools(updated);
-    notifyChange(inspiration, roadmap, updated, pitfalls, firstStep);
+    notifyChange({ habitsAndTools: updated });
   };
 
   const handleAddHabit = () => {
     const updated = [...habitsAndTools, ''];
     setHabitsAndTools(updated);
-    notifyChange(inspiration, roadmap, updated, pitfalls, firstStep);
+    notifyChange({ habitsAndTools: updated });
   };
 
   const handleRemoveHabit = (index: number) => {
     const updated = habitsAndTools.filter((_, idx) => idx !== index);
     setHabitsAndTools(updated);
-    notifyChange(inspiration, roadmap, updated, pitfalls, firstStep);
+    notifyChange({ habitsAndTools: updated });
   };
 
   const handlePitfallChange = (index: number, value: string) => {
-    const updated = [...pitfalls];
-    updated[index] = value;
+    const updated = pitfalls.map((item, idx) => (idx === index ? value : item));
     setPitfalls(updated);
-    notifyChange(inspiration, roadmap, updated, pitfalls, firstStep);
+    notifyChange({ pitfalls: updated });
   };
 
   const handleAddPitfall = () => {
     const updated = [...pitfalls, ''];
     setPitfalls(updated);
-    notifyChange(inspiration, roadmap, updated, pitfalls, firstStep);
+    notifyChange({ pitfalls: updated });
   };
 
   const handleRemovePitfall = (index: number) => {
     const updated = pitfalls.filter((_, idx) => idx !== index);
     setPitfalls(updated);
-    notifyChange(inspiration, roadmap, updated, pitfalls, firstStep);
+    notifyChange({ pitfalls: updated });
   };
 
   return (
     <div className="plan-form-container">
-      {/* Inspiration Section */}
+      <div className="plan-form-section">
+        <label className="plan-section-title" htmlFor={`${idPrefix}-summary`}>
+          <span className="section-icon">✦</span> 诗意心愿 · 愿望重写
+        </label>
+        <textarea
+          id={`${idPrefix}-summary`}
+          className="plan-form-textarea"
+          placeholder="古风五言/七言单句，如：夜阑卧听风吹雨 / 英文为十四行诗单句"
+          value={summary}
+          onChange={e => {
+            setSummary(e.target.value);
+            notifyChange({ summary: e.target.value });
+          }}
+        />
+      </div>
+
       <div className="plan-form-section">
         <label className="plan-section-title" htmlFor={`${idPrefix}-inspiration`}>
           <span className="section-icon">✦</span> 励志寄语与洞察
         </label>
         <textarea
           id={`${idPrefix}-inspiration`}
-          className="plan-form-textarea plan-inspiration-input"
+          className="plan-form-textarea"
           placeholder="输入温暖励志且富有哲理的洞察与激励..."
           value={inspiration}
           onChange={e => {
             setInspiration(e.target.value);
-            notifyChange(e.target.value);
+            notifyChange({ inspiration: e.target.value });
           }}
         />
       </div>
 
-      {/* Roadmap Steps */}
       <div className="plan-form-section">
         <div className="plan-section-title">
           <span className="section-icon">✦</span> 行动路线图（阶段规划）
         </div>
         <div className="roadmap-steps-list">
           {roadmap.map((step, idx) => (
-            <div key={`${step.phase}-${step.title ?? step.name}`} className="roadmap-step-editor">
+            <div
+              key={`${idx}-${step.phase}-${step.title ?? step.name}`}
+              className="roadmap-step-editor"
+            >
               <div className="roadmap-step-header">
                 <span className="step-num-badge">阶段 {idx + 1}</span>
                 <button
@@ -213,7 +256,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         </div>
         <div className="dynamic-items-list">
           {habitsAndTools.map((habit, idx) => (
-            <div key={habit} className="dynamic-item-row">
+            <div key={`${idx}-${habit}`} className="dynamic-item-row">
               <input
                 id={`${idPrefix}-habit-${idx}`}
                 type="text"
@@ -245,7 +288,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         </div>
         <div className="dynamic-items-list">
           {pitfalls.map((pitfall, idx) => (
-            <div key={pitfall} className="dynamic-item-row">
+            <div key={`${idx}-${pitfall}`} className="dynamic-item-row">
               <input
                 id={`${idPrefix}-pitfall-${idx}`}
                 type="text"
@@ -277,12 +320,12 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         </label>
         <textarea
           id={`${idPrefix}-first-step`}
-          className="plan-form-textarea plan-firststep-input"
+          className="plan-form-textarea"
           placeholder="24 小时内可以立即开始并完成的第一小步..."
           value={firstStep}
           onChange={e => {
             setFirstStep(e.target.value);
-            notifyChange(inspiration, roadmap, habitsAndTools, pitfalls, e.target.value);
+            notifyChange({ firstStep: e.target.value });
           }}
         />
       </div>
@@ -292,7 +335,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         <textarea
           className="json-debug-textarea"
           readOnly
-          value={JSON.stringify(debugPlan, null, 2)}
+          value={JSON.stringify(previewPlan, null, 2)}
           aria-label="原始 JSON 数据"
         />
       </details>

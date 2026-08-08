@@ -24,6 +24,8 @@ export interface TranslationDictionary {
   loadingTitle: string;
   close: string;
   closeModal: string;
+  summaryLabel: string;
+  summaryFallback: string;
   inspirationTitle: string;
   roadmapTitle: string;
   habitsTitle: string;
@@ -107,6 +109,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     loadingTitle: '群星推演中...',
     close: '关闭',
     closeModal: '关闭弹窗',
+    summaryLabel: '星光诗意',
+    summaryFallback: '长风破浪会有时',
     inspirationTitle: '星芒启示',
     roadmapTitle: '🗺️ 心愿推演蓝图',
     habitsTitle: '🎯 关键习惯与助力工具',
@@ -133,6 +137,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       '正在梳理愿望核心与潜在阻力...',
       '正在推演心愿落地的行动路径...',
       '正在凝练关键建议与启程第一步...',
+      '正在为心愿点缀诗意...',
     ],
     apiKeySaved: '✦ Google API 密钥已保存',
     apiKeyCleared: '已清除 Google API 密钥',
@@ -202,7 +207,9 @@ export const translations: Record<Language, TranslationDictionary> = {
     loadingTitle: 'Mapping Your Wish...',
     close: 'Close',
     closeModal: 'Close dialog',
-    inspirationTitle: 'Starlight Insight',
+    summaryLabel: 'Verse',
+    summaryFallback: 'Through starlit night thy wish shall find its way',
+    inspirationTitle: 'Insight',
     roadmapTitle: '🗺️ Wish Roadmap',
     habitsTitle: '🎯 Key Habits & Tools',
     pitfallsTitle: '🛡️ Pitfalls & Mindset',
@@ -228,6 +235,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       'Mapping its core goals and potential obstacles...',
       'Designing a practical path forward...',
       'Refining key guidance and your first step...',
+      'Distilling your wish into poetic verse...',
     ],
     apiKeySaved: '✦ Google API key saved',
     apiKeyCleared: 'Google API key cleared',

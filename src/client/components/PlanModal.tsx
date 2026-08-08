@@ -111,24 +111,36 @@ export const PlanModal: React.FC<PlanModalProps> = ({
         </button>
 
         <div className="modal-header">
-          <div className="modal-badge" id="modalCategoryBadge">
-            {categoryName}
+          <div className="modal-header-top">
+            <div className="modal-badge" id="modalCategoryBadge">
+              {categoryName}
+            </div>
+            <span className="meta-time" id="modalWishTime">
+              {t('wishTime')}: {dateStr}
+            </span>
           </div>
           <h2 className="modal-wish-title" id="modalWishTitle">
             “{wish.title}”
           </h2>
-          <div className="modal-meta">
-            <span className="meta-time" id="modalWishTime">
-              {t('wishTime')}: {dateStr}
-            </span>
+          <div className="modal-summary" id="modalWishSummary">
+            <div className="modal-summary-label">
+              <span aria-hidden="true">🍃</span> {t('summaryLabel')}
+            </div>
+            <p className="modal-summary-text" lang={language}>
+              “{plan.summary?.trim() || t('summaryFallback')}”
+            </p>
           </div>
         </div>
 
         <div className="modal-body" id="modalWishContent">
           <div className="inspiration-card">
-            <div className="card-icon">✦</div>
             <div className="card-content">
-              <h4>{t('inspirationTitle')}</h4>
+              <h4>
+                <span className="card-icon" aria-hidden="true">
+                  ✨
+                </span>
+                {t('inspirationTitle')}
+              </h4>
               <p id="planInspiration">“{plan.inspiration || t('inspirationFallback')}”</p>
             </div>
           </div>
@@ -137,7 +149,10 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <h3 className="section-title">{t('roadmapTitle')}</h3>
             <div className="roadmap-timeline" id="planRoadmap">
               {rawSteps.map((step, idx) => (
-                <div key={`${step.phase}-${step.title ?? step.name}`} className="roadmap-step-card">
+                <div
+                  key={`${idx}-${step.phase}-${step.title ?? step.name}`}
+                  className="roadmap-step-card"
+                >
                   <div className="step-header">
                     <span className="step-phase">{getPhaseHeading(step, idx)}</span>
                     <span className="step-timeline">
@@ -157,8 +172,8 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <div className="plan-box box-habits">
               <h4>{t('habitsTitle')}</h4>
               <ul id="planHabits">
-                {habitsList.map(item => (
-                  <li key={item}>{item}</li>
+                {habitsList.map((item, idx) => (
+                  <li key={`${idx}-${item}`}>{item}</li>
                 ))}
               </ul>
             </div>
@@ -166,8 +181,8 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <div className="plan-box box-pitfalls">
               <h4>{t('pitfallsTitle')}</h4>
               <ul id="planPitfalls">
-                {pitfallsList.map(item => (
-                  <li key={item}>{item}</li>
+                {pitfallsList.map((item, idx) => (
+                  <li key={`${idx}-${item}`}>{item}</li>
                 ))}
               </ul>
             </div>

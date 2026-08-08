@@ -64,7 +64,15 @@ export async function generatePlan({
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: buildPrompt(wish, category, language) }] }],
-      generationConfig: { responseMimeType: 'application/json' },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 1.2,
+        topP: 0.95,
+        thinkingConfig: {
+          thinkingBudget: 1024,
+          includeThoughts: false,
+        },
+      },
     }),
   });
   const payload = (await response.json()) as GeminiResponsePayload;

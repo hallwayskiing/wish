@@ -2,6 +2,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import './styles/style.css';
 import './styles/wish.css';
+import './styles/poetic.css';
 import './styles/modal.css';
 import './styles/wall.css';
 

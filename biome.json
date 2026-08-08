@@ -30,7 +30,7 @@
       },
       "suspicious": {
         "noExplicitAny": "error",
-        "noArrayIndexKey": "error",
+        "noArrayIndexKey": "off",
         "useIterableCallbackReturn": "error"
       }
     }

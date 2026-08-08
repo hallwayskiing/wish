@@ -33,15 +33,23 @@ export function sanitizeAiPlan(obj: unknown): AIPlan {
     return arr.filter((item): item is string => typeof item === 'string');
   };
 
+  const trimString = (value: unknown, maxLength?: number): string | undefined => {
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    return maxLength ? trimmed.slice(0, maxLength) : trimmed;
+  };
+
   return {
-    inspiration: typeof p.inspiration === 'string' ? p.inspiration : undefined,
-    timeline: typeof p.timeline === 'string' ? p.timeline : undefined,
+    summary: trimString(p.summary, 300),
+    inspiration: trimString(p.inspiration),
+    timeline: trimString(p.timeline),
     roadmap: sanitizePhases(p.roadmap),
     phases: sanitizePhases(p.phases),
     habits: sanitizeStringArray(p.habits),
     habitsAndTools: sanitizeStringArray(p.habitsAndTools),
     pitfalls: sanitizeStringArray(p.pitfalls),
-    firstStep: typeof p.firstStep === 'string' ? p.firstStep : undefined,
+    firstStep: trimString(p.firstStep),
   };
 }
 

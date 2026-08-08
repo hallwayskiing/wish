@@ -1,0 +1,11 @@
+/* Poetic slip — shared design tokens */
+:root {
+  --poetic-accent-rgb: 207, 176, 126;
+  --poetic-bg: rgba(255, 255, 255, 0.025);
+  --poetic-border: rgba(255, 255, 255, 0.06);
+  --poetic-accent-border: rgba(var(--poetic-accent-rgb), 0.38);
+  --poetic-accent-line: rgba(var(--poetic-accent-rgb), 0.55);
+  --font-serif-zh:
+    "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "Source Han Serif CN", serif;
+  --font-serif-en: "Cormorant Garamond", "EB Garamond", Georgia, serif;
+}

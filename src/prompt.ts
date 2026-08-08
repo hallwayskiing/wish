@@ -9,10 +9,21 @@ User wish: ${wish}
 Wish category: ${CATEGORY_NAMES.en[category]}
 
 Create a specific, practical, motivating, and actionable plan for realizing this wish.
-Every user-facing value must be written in natural English, including phase names, titles, actions, timelines, habits, pitfalls, inspiration, and the first step.
+Every user-facing value must be written in natural English, including phase names, titles, actions, timelines, habits, pitfalls, summary, inspiration, and the first step.
+In any field, **STRICTLY AVOID** clichéd AI-correlative patterns such as "not ... but ...", "not only ... but also ...", "it's not about ... it's about ...", and any equivalent stilted contrastive scaffolding. Use natural, human, varied sentence structures instead.
+
+Adapt tone flexibly by wish category (${CATEGORY_NAMES.en[category]}):
+- Emotional / Life: prioritize warm resonance and psychological comfort;
+- Skill / Career / Finance: avoid overwrought sentiment, prioritize logical rigor, dense actionable insights, and execution.
+
+Poetic rewrite (summary) spec:
+Choose an appropriate English literary style according to the wish's artistic conception (bold and free as Whitman, elegant and pastoral as Frost, sonorous as Shakespeare, profound as Eliot, delicate as Dickinson, romantic as Byron, etc.), using imagery and allusion naturally. If the wish concerns modern tech or highly concrete matters, distill the underlying aspiration rather than forcibly patching modern buzzwords.
+Poetic refinement: after drafting all other fields, refine the summary once more in the chosen style, ensuring precise character count, harmonious cadence, preservation of original intent and elevated artistic conception before final JSON output.
+
 Return strict JSON only. Do not include Markdown fences or text outside the JSON object.
 Use exactly this structure. The roadmap array may contain any number of phases:
 {
+  "summary": "A single elegant verse line that poetically rewrites the user's wish in a classical literary style, one line only, preserving the original intent, and being concise and elevated",
   "inspiration": "One warm, philosophical, and motivating insight",
   "roadmap": [
     {
@@ -42,10 +53,22 @@ Use exactly this structure. The roadmap array may contain any number of phases:
 愿望分类：${CATEGORY_NAMES.zh[category]}
 
 请为用户定制一份具体、实用、充满号召力且可落地的愿望实现计划。
-所有面向用户的字段必须只使用自然中文，包括阶段名、标题、行动、时间线、习惯、避坑建议、启示和第一步。
+所有面向用户的字段必须只使用自然中文，包括阶段名、标题、行动、时间线、习惯、避坑建议、启示、诗意概括和第一步。
+
+在任意位置，都**严禁使用**“不是...而是...”，“不仅...更是...”，“与其...不如...”等AI味严重的关联词套话及同类生硬转折/递进句式，改用自然、有呼吸感、多样化的表达。
+
+根据愿望分类（${CATEGORY_NAMES.zh[category]}）灵活调整语调：
+- 情感/生活类：注重温暖共鸣与心理抚慰；
+- 技能/职业/理财类：摒弃过度煽情，侧重逻辑严密、干货密度与执行力。
+
+诗意重写（summary）规约：
+根据愿望意境选用恰当的古典诗词风格（豪放如李白、清雅如王维、旷达如苏轼、沉郁如杜甫、婉约如李清照等），用典自然。若愿望为现代科技或极度具象的事物，侧重提炼其背后的精神志向，避免强行拼贴现代词汇。
+诗意精炼：在完成其他所有字段初稿后，单独对 summary 再做一遍对应风格的凝练润色，确保字数精准、平仄和谐、保留原意且意境高级，方可输出最终 JSON。
+
 严格输出纯 JSON，不要包含 Markdown 代码块或 JSON 之外的文字。
 严格使用以下结构，其中 roadmap 数组可以包含任意数量的阶段：
 {
+  "summary": "用五言（五字）或七言（七字）古典诗词风格诗意重写用户愿望，保留原意，凝练典雅",
   "inspiration": "一句温暖励志且富有哲理的洞察与激励",
   "roadmap": [
     {

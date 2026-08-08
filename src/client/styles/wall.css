@@ -337,19 +337,105 @@
   line-height: 1.55;
   margin-bottom: var(--space-4);
   display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   letter-spacing: -0.01em;
+  min-height: calc(1.55em * 2);
 }
 
+/* Poetic slip — wall instance */
+.card-summary {
+  position: relative;
+  background: var(--poetic-bg);
+  border: 1px solid var(--poetic-border);
+  border-left: 1px solid var(--poetic-accent-border);
+  border-radius: 2px;
+  padding: 0.65rem 0.8rem 0.65rem 0.85rem;
+  margin-bottom: 0.9rem;
+}
+
+.card-summary::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--poetic-accent-line), transparent);
+  opacity: 0.9;
+}
+
+.summary-label {
+  font-family: var(--font-sans);
+  color: var(--accent-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  opacity: 0.9;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.08em;
+}
+
+.summary-text {
+  color: #e8dcc3;
+  font-family: var(--font-serif-zh);
+  font-weight: 400;
+  text-align: left;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  opacity: 1;
+  font-size: 0.92rem;
+  line-height: 2.05;
+  letter-spacing: 0.16em;
+  min-height: 2.05em;
+  word-break: break-word;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings:
+    "palt" 1,
+    "kern" 1;
+  font-variant-east-asian: proportional-width;
+  font-optical-sizing: auto;
+}
+
+.summary-text:lang(en) {
+  font-family: var(--font-serif-en);
+  font-style: italic;
+  font-weight: 350;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  font-size: 0.87rem;
+  min-height: 1.7em;
+}
+
+/* — High-end Inspiration — */
 .card-ai-preview {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xs);
-  padding: 0.7rem 0.9rem;
+  position: relative;
+  background: linear-gradient(180deg, rgba(207, 176, 126, 0.07), rgba(0, 0, 0, 0.14));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(207, 176, 126, 0.22);
+  border-radius: 2px;
+  padding: 0.85rem 0.8rem;
   margin-bottom: 1.2rem;
+  text-align: left;
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.12);
+}
+
+.card-ai-preview::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 1px;
+  background: rgba(207, 176, 126, 0.55);
+  box-shadow: 0 0 8px rgba(207, 176, 126, 0.35);
 }
 
 .preview-label {
@@ -361,15 +447,35 @@
   letter-spacing: 0.08em;
 }
 
+.preview-label span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-size: 0.68rem;
+  line-height: 1;
+  opacity: 0.9;
+  filter: none;
+}
+
 .preview-text {
+  position: relative;
   font-size: 0.83rem;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.7;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-style: italic;
+  opacity: 0.92;
+  min-height: calc(1.7em * 3);
+  word-break: break-word;
 }
 
 .card-bottom {

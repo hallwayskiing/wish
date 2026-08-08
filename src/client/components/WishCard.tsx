@@ -42,6 +42,7 @@ export const WishCard: React.FC<WishCardProps> = ({
     month: '2-digit',
     day: '2-digit',
   });
+  const summary = wish.aiPlan?.summary?.trim() || t('summaryFallback');
   const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
   const categoryName = getCategoryName(wish.category, language, t('wishFallback'));
 
@@ -88,6 +89,14 @@ export const WishCard: React.FC<WishCardProps> = ({
           <span className="card-date">{date}</span>
         </div>
         <h3 className="card-wish-text">“{wish.title}”</h3>
+        <div className="card-summary">
+          <div className="summary-label">
+            <span aria-hidden="true">🍃</span> {t('summaryLabel')}
+          </div>
+          <div className="summary-text" lang={language}>
+            “{summary}”
+          </div>
+        </div>
         <div className="card-ai-preview">
           <div className="preview-label">
             <span aria-hidden="true">✨</span> {t('inspirationTitle')}
@@ -103,7 +112,7 @@ export const WishCard: React.FC<WishCardProps> = ({
           type="button"
         >
           <span className="bless-icon" aria-hidden="true">
-            {isBlessing ? '↻' : '✨'}
+            {isBlessing ? '↻' : '🌟'}
           </span>
           <span className="bless-label">{t('bless')}</span>
           <span className="bless-count">{wish.blessings || 0}</span>

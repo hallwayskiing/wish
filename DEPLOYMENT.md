@@ -37,15 +37,15 @@ Common scripts:
 | `npm run lint` | ESLint |
 | `npm run db:migrate:local` | Apply D1 migrations locally |
 | `npm run db:migrate:remote` | Apply D1 migrations remotely |
-| `npm run deploy` | Build and deploy to Cloudflare |
+| `npm run deploy` | Deploy the existing production build to Cloudflare |
+| `npm run release` | Build, apply pending remote D1 migrations, and deploy to Cloudflare |
 
 ## First Deployment to Cloudflare
 
 ```bash
 npx wrangler login
 npx wrangler secret put ADMIN_PASSWORD
-npm run deploy
-npm run db:migrate:remote
+npm run release
 ```
 
 Notes:
@@ -55,20 +55,34 @@ Notes:
 3. After migrations, open the `*.workers.dev` URL from the deploy output — that is your live site.
 4. To use a custom domain, bind it to the Worker in the Cloudflare Dashboard.
 
-## Subsequent Releases
+## Continuous Deployment with GitHub Actions
 
-```bash
-npm run check          # optional but recommended
-npm run deploy
+Every push to `main` runs:
+
+```text
+npm ci -> npm run check -> npm run lint -> npm run release
 ```
 
-Additional steps when relevant:
+Required GitHub Actions secrets:
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN` with Workers and D1 access for the same account
+
+The `production` job is serialized and has a 15-minute timeout. Set `ADMIN_PASSWORD` separately with `wrangler secret put`.
+
+## Subsequent Releases
+
+Push to `main` for CI deployment, or release manually from an authenticated environment:
 
 ```bash
-# After changing the admin password
-npx wrangler secret put ADMIN_PASSWORD
+git push origin main
+npm run release
+```
 
-# After adding or modifying D1 migrations
+Apply operations independently only when needed:
+
+```bash
+npx wrangler secret put ADMIN_PASSWORD
 npm run db:migrate:remote
 ```
 
@@ -85,7 +99,7 @@ npm run db:migrate:remote
 
 ## Rollback & Troubleshooting
 
-- **Rollback**: Cloudflare Dashboard -> Workers -> `wish-realizer` -> Deployments -> roll back to a previous version, or `git checkout <tag> && npm run deploy`.
+- **Rollback**: Use Dashboard -> Workers -> `wish-realizer` -> Deployments. Source rollback (`npm run build && npm run deploy`) must remain schema-compatible and does not reverse D1 migrations.
 - **Logs**: `wrangler.jsonc` has `observability.enabled`. View live logs in Dashboard -> Workers -> Logs. Local logs are in `.wrangler/`.
 - **Common issues**:
   - `ASSETS binding unavailable`: Worker was started without `vite`. Use `npm run dev`.

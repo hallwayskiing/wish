@@ -55,4 +55,6 @@ migrations/  wrangler.jsonc  vite.config.ts  tsconfig.json
 
 ## Workflow
 
-- Prohibited: edit `node_modules/ dist/ .wrangler/`, commit `.dev.vars` / `.DS_Store` / secrets, or run `wrangler deploy` / `db:migrate:remote` without explicit user confirmation.
+- CI on `main`: Node 22 -> `npm ci` -> `check` -> `lint` -> `release`; requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`.
+- `release` = build -> remote D1 migrations -> deploy. `deploy` only invokes Wrangler. Production runs are serialized.
+- Prohibited: edit `node_modules/ dist/ .wrangler/`, commit `.dev.vars` / `.DS_Store` / secrets, or run `npm run release` / `npm run deploy` / `wrangler deploy` / `db:migrate:remote` without explicit user confirmation.

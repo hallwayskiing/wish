@@ -70,7 +70,7 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
   onUnauthorized,
 }) => {
   const [title, setTitle] = useState(wish.title || '');
-  const [category, setCategory] = useState(wish.category || 'growth');
+  const [categories, setCategories] = useState<string[]>(() => [...wish.categories]);
   const [blessings, setBlessings] = useState(wish.blessings || 0);
   const [status, setStatus] = useState<'active' | 'completed'>(wish.status || 'active');
   const [aiPlan, setAiPlan] = useState<AIPlan>(wish.aiPlan || {});
@@ -100,7 +100,7 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
           method: 'PUT',
           body: JSON.stringify({
             title,
-            category,
+            categories,
             blessings: Number(blessings),
             status,
             aiPlan: normalizeAiPlan(aiPlan),
@@ -108,7 +108,7 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
         }
       );
       setTitle(res.wish.title);
-      setCategory(res.wish.category);
+      setCategories([...res.wish.categories]);
       setBlessings(res.wish.blessings);
       setStatus(res.wish.status || 'active');
       setAiPlan(res.wish.aiPlan || {});
@@ -169,23 +169,45 @@ export const AdminWishCard: React.FC<AdminWishCardProps> = ({
         />
       </div>
 
-      <div className="field">
-        <label className="field-label" htmlFor={`wish-category-${wish.id}`}>
-          分类领域
-        </label>
-        <select
-          id={`wish-category-${wish.id}`}
-          className="wish-category-select"
-          value={category}
-          onChange={e => setCategory(e.target.value)}
+      <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="field-label">分类领域（可多选 1-3 项）</legend>
+        <div
+          className="category-checkbox-group"
+          style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}
         >
-          {Object.entries(CATEGORY_NAMES.zh).map(([val, label]) => (
-            <option key={val} value={val}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </div>
+          {Object.entries(CATEGORY_NAMES.zh).map(([val, label]) => {
+            const checked = categories.includes(val);
+            return (
+              <label
+                key={val}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={e => {
+                    setCategories(prev => {
+                      if (e.target.checked) {
+                        if (prev.includes(val)) return prev;
+                        if (prev.length >= 3) return prev;
+                        return [...prev, val];
+                      }
+                      const next = prev.filter(item => item !== val);
+                      return next.length ? next : ['other'];
+                    });
+                  }}
+                />
+                <span>{label}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <div className="field">
         <label className="field-label" htmlFor={`wish-blessings-${wish.id}`}>

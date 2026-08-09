@@ -72,7 +72,7 @@ export const WishWall = forwardRef<WishWallRef, WishWallProps>(
 
     const filteredWishes = wishes.filter(wish => {
       const statusMatch = showCompleted ? wish.status === 'completed' : wish.status !== 'completed';
-      const categoryMatch = activeFilter === 'all' || wish.category === activeFilter;
+      const categoryMatch = activeFilter === 'all' || wish.categories.includes(activeFilter);
       return statusMatch && categoryMatch;
     });
 
@@ -132,7 +132,7 @@ export const WishWall = forwardRef<WishWallRef, WishWallProps>(
                 setCurrentPage(1);
               }}
             >
-              {t('filterAll')}
+              ✨ {t('filterAll')}
             </button>
             {CATEGORY_IDS.map(cat => (
               <button
@@ -165,32 +165,34 @@ export const WishWall = forwardRef<WishWallRef, WishWallProps>(
                 }}
               />
             </div>
-            <button
-              className={`wall-refresh-btn ${isLoading ? 'loading' : ''}`}
-              id="refreshWallBtn"
-              type="button"
-              title={t('refreshWallTitle')}
-              onClick={() => void fetchWishes()}
-              disabled={isLoading}
-            >
-              <span className="refresh-icon" aria-hidden="true">
-                ↻
-              </span>
-              <span>{t('refreshWall')}</span>
-            </button>
-            <label className="completed-filter-label" id="completedFilterContainer">
-              <input
-                type="checkbox"
-                id="showCompletedCheckbox"
-                className="completed-checkbox"
-                checked={showCompleted}
-                onChange={e => {
-                  setShowCompleted(e.target.checked);
-                  setCurrentPage(1);
-                }}
-              />
-              <span>{t('showCompleted')}</span>
-            </label>
+            <div className="wall-actions-right">
+              <button
+                className={`wall-refresh-btn ${isLoading ? 'loading' : ''}`}
+                id="refreshWallBtn"
+                type="button"
+                title={t('refreshWallTitle')}
+                onClick={() => void fetchWishes()}
+                disabled={isLoading}
+              >
+                <span className="refresh-icon" aria-hidden="true">
+                  ↻
+                </span>
+                <span>{t('refreshWall')}</span>
+              </button>
+              <label className="completed-filter-label" id="completedFilterContainer">
+                <input
+                  type="checkbox"
+                  id="showCompletedCheckbox"
+                  className="completed-checkbox"
+                  checked={showCompleted}
+                  onChange={e => {
+                    setShowCompleted(e.target.checked);
+                    setCurrentPage(1);
+                  }}
+                />
+                <span>{t('showCompleted')}</span>
+              </label>
+            </div>
           </div>
         </div>
 

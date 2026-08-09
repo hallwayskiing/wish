@@ -94,10 +94,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onUnauthorized }
   const term = debouncedSearchQuery.trim().toLocaleLowerCase('zh-CN');
   const filteredWishes = term
     ? wishes.filter(wish => {
-        const category = isCategoryId(wish.category)
-          ? CATEGORY_NAMES.zh[wish.category]
-          : wish.categoryName || '';
-        return `${wish.title} ${category}`.toLocaleLowerCase('zh-CN').includes(term);
+        const categoryText = wish.categories
+          .map(c => (isCategoryId(c) ? CATEGORY_NAMES.zh[c] : ''))
+          .join(' ');
+        return `${wish.title} ${categoryText}`.toLocaleLowerCase('zh-CN').includes(term);
       })
     : wishes;
 

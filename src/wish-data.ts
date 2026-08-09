@@ -1,8 +1,8 @@
-import { CATEGORY_IDS } from './categories.js';
+import { CATEGORY_IDS, normalizeCategories } from './categories.js';
 import type { AIPlan, AIPlanPhase, RawWishRow, Wish } from './types.js';
 
 export const WISH_FIELDS =
-  'id, title, category, categoryName, createdAt, blessings, aiPlan, status, completedAt';
+  'id, title, categories, createdAt, blessings, aiPlan, status, completedAt';
 export const VALID_CATEGORIES: Set<string> = new Set(CATEGORY_IDS);
 export const MAX_PLAN_LENGTH = 100_000;
 
@@ -76,17 +76,39 @@ export function parseWishRow(
 ): Wish | null {
   if (!row || typeof row !== 'object') return null;
   const raw = row as Record<string, unknown>;
+  const parsedCategories = parseCategoriesField(raw.categories);
   return {
     id: String(raw.id || ''),
     title: String(raw.title || ''),
-    category: String(raw.category || ''),
-    categoryName: String(raw.categoryName || ''),
+    categories: parsedCategories,
     createdAt: String(raw.createdAt || ''),
     blessings: Number(raw.blessings) || 0,
     aiPlan: parseAiPlanJson(raw.aiPlan),
     status: raw.status === 'completed' ? 'completed' : 'active',
     completedAt: typeof raw.completedAt === 'string' ? raw.completedAt : undefined,
   };
+}
+
+export function parseCategoriesField(rawCategories: unknown): string[] {
+  if (typeof rawCategories === 'string') {
+    try {
+      const parsed: unknown = JSON.parse(rawCategories);
+      if (Array.isArray(parsed)) {
+        return normalizeCategories(parsed);
+      }
+    } catch {
+      // fall through
+    }
+  }
+  if (Array.isArray(rawCategories)) {
+    return normalizeCategories(rawCategories);
+  }
+  return ['other'];
+}
+
+export function serializeCategories(categories: unknown): string {
+  const normalized = normalizeCategories(categories);
+  return JSON.stringify(normalized);
 }
 
 export function bindStatement(

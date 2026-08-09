@@ -1,12 +1,18 @@
-import { CATEGORY_NAMES, isCategoryId } from './categories.js';
+import { normalizeCategories } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { serverMessage } from './server-messages.js';
 import type { AIPlan, Env } from './types.js';
-import { MAX_PLAN_LENGTH, parseWishRow, serializePlan, WISH_FIELDS } from './wish-data.js';
+import {
+  MAX_PLAN_LENGTH,
+  parseWishRow,
+  serializeCategories,
+  serializePlan,
+  WISH_FIELDS,
+} from './wish-data.js';
 
 interface UpdateAdminWishBody {
   title?: string;
-  category?: string;
+  categories?: string[];
   blessings?: number;
   status?: string;
   aiPlan?: AIPlan;
@@ -15,14 +21,14 @@ interface UpdateAdminWishBody {
 export async function updateAdminWish(id: string, request: Request, env: Env): Promise<Response> {
   const body = await parseJsonBody<UpdateAdminWishBody>(request);
   const title = typeof body?.title === 'string' ? body.title.trim().slice(0, 300) : '';
-  const category = typeof body?.category === 'string' ? body.category : '';
+  const categories = normalizeCategories(body?.categories);
   const blessings = Number(body?.blessings);
   const status = body?.status === 'completed' ? 'completed' : 'active';
   const now = new Date().toISOString();
   const serializedPlan = serializePlan(body?.aiPlan);
 
   if (!title) return json({ error: serverMessage('zh', 'emptyTitle') }, 400);
-  if (!isCategoryId(category)) {
+  if (!categories.length) {
     return json({ error: serverMessage('zh', 'invalidCategory') }, 400);
   }
   if (!Number.isInteger(blessings) || blessings < 0 || blessings > 999999999) {
@@ -33,25 +39,16 @@ export async function updateAdminWish(id: string, request: Request, env: Env): P
     return json({ error: serverMessage('zh', 'planTooLong') }, 400);
   }
 
+  const serializedCategories = serializeCategories(categories);
   try {
     const update = await env.DB.prepare(`
       UPDATE wishes
-      SET title = ?, category = ?, categoryName = ?, blessings = ?, status = ?,
+      SET title = ?, categories = ?, blessings = ?, status = ?,
           completedAt = CASE WHEN ? = 'completed' THEN COALESCE(completedAt, ?) ELSE NULL END,
           aiPlan = ?
       WHERE id = ?
     `)
-      .bind(
-        title,
-        category,
-        CATEGORY_NAMES.zh[category],
-        blessings,
-        status,
-        status,
-        now,
-        serializedPlan,
-        id
-      )
+      .bind(title, serializedCategories, blessings, status, status, now, serializedPlan, id)
       .run();
 
     if (!update.meta?.changes) {

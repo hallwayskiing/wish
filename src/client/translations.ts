@@ -38,7 +38,6 @@ export interface TranslationDictionary {
   clearApiKey: string;
   saveConfig: string;
   footerQuote: string;
-  placeholders: Record<string, string>;
   loadingPhrases: string[];
   apiKeySaved: string;
   apiKeyCleared: string;
@@ -81,6 +80,7 @@ export interface TranslationDictionary {
   completeError: string;
   showCompleted: string;
   completedBadge: string;
+  completedStamp: string;
   alreadyCompleted: string;
 }
 
@@ -124,14 +124,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     clearApiKey: '清除 Key',
     saveConfig: '保存配置',
     footerQuote: '“星光不问赶路人，岁月不负有心人。”',
-    placeholders: {
-      growth: '我想养成阅读和复盘的习惯',
-      career: '我想完成作品集，并获得理想的工作机会',
-      study: '我想掌握数据分析，并独立完成一个可视化项目',
-      love: '我想学会更真诚地表达感受，建立稳定而温暖的关系',
-      health: '我想建立规律运动和早睡的生活节奏',
-      creative: '我想完成第一篇短篇小说并公开发布',
-    },
     loadingPhrases: [
       '正在感应并解析你的心愿...',
       '正在梳理愿望核心与潜在阻力...',
@@ -180,6 +172,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     completeError: '完成心愿失败，请重试',
     showCompleted: '查看已完成',
     completedBadge: '已完成',
+    completedStamp: '已完成',
     alreadyCompleted: '✓ 心愿已完成',
   },
   en: {
@@ -222,14 +215,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     clearApiKey: 'Clear Key',
     saveConfig: 'Save Config',
     footerQuote: '“May every step beneath the stars bring your wish closer.”',
-    placeholders: {
-      growth: 'I want to build a habit of reading and reflecting',
-      career: 'I want to complete my portfolio and find an ideal opportunity',
-      study: 'I want to master data analysis and build a visualization project',
-      love: 'I want to express myself honestly and build a warm, stable relationship',
-      health: 'I want to build a consistent exercise and sleep routine',
-      creative: 'I want to finish and publish my first short story',
-    },
     loadingPhrases: [
       'Sensing and interpreting your wish...',
       'Mapping its core goals and potential obstacles...',
@@ -278,6 +263,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     completeError: 'Failed to complete wish. Please try again.',
     showCompleted: 'View Completed',
     completedBadge: 'Completed',
+    completedStamp: 'Done',
     alreadyCompleted: '✓ Wish Completed',
   },
 };

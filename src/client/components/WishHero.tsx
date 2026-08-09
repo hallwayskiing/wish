@@ -1,6 +1,5 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { CATEGORY_IDS, type CategoryId, getCategoryLabel } from '../../categories.js';
 import { WishAPI } from '../api.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import type { Wish } from '../types.js';
@@ -13,15 +12,11 @@ interface WishHeroProps {
 
 export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated, onShowToast }) => {
   const { language, t, dict } = useLanguage();
-  const [category, setCategory] = useState<CategoryId>('growth');
   const [wishText, setWishText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [loadingPhraseIndex, setLoadingPhraseIndex] = useState(0);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const defaultExample = dict.placeholders[category] || '';
-  const placeholder = `${defaultExample}...`;
 
   useEffect(() => {
     if (!isLoading) return;
@@ -54,13 +49,17 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isLoading) return;
-    const textToSubmit = wishText.trim() || defaultExample;
+    const textToSubmit = wishText.trim();
+    if (!textToSubmit) {
+      onShowToast(`❌ ${t('generationError')}`);
+      return;
+    }
     setProgress(5);
     setLoadingPhraseIndex(0);
     setIsLoading(true);
 
     try {
-      const res = await WishAPI.submitWish(textToSubmit, category, customApiKey, language);
+      const res = await WishAPI.submitWish(textToSubmit, customApiKey, language);
       setProgress(100);
       completionTimerRef.current = setTimeout(() => {
         completionTimerRef.current = null;
@@ -88,31 +87,12 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
         <p className="hero-subtitle">{t('heroSubtitle')}</p>
 
         <form className="wish-card-form glass-panel" onSubmit={handleSubmit} aria-busy={isLoading}>
-          <fieldset className="category-selector" aria-labelledby="categoryLabel">
-            <legend className="section-label" id="categoryLabel">
-              {t('categoryLabel')}
-            </legend>
-            <div className="category-pills" id="categoryPills">
-              {CATEGORY_IDS.map(cat => (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`cat-pill ${category === cat ? 'active' : ''}`}
-                  aria-pressed={category === cat}
-                  onClick={() => setCategory(cat)}
-                >
-                  {getCategoryLabel(cat, language)}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
           <div className="input-group">
             <textarea
               id="wishInput"
               rows={3}
               maxLength={300}
-              placeholder={placeholder}
+              placeholder={t('wishInputLabel')}
               aria-label={t('wishInputLabel')}
               value={wishText}
               onChange={e => setWishText(e.target.value)}
@@ -124,7 +104,12 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
             </div>
           </div>
 
-          <button id="submitWishBtn" className="btn-primary" disabled={isLoading} type="submit">
+          <button
+            id="submitWishBtn"
+            className="btn-primary"
+            disabled={isLoading || !wishText.trim()}
+            type="submit"
+          >
             <span className="btn-stars">✦</span>
             <span className="btn-text">{t('submitWish')}</span>
           </button>

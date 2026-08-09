@@ -1,4 +1,4 @@
-import type { CategoryId } from './categories.js';
+import { type CategoryId, normalizeCategories } from './categories.js';
 import { buildPrompt } from './prompt.js';
 import { serverMessage } from './server-messages.js';
 import type { AIPlan } from './types.js';
@@ -8,9 +8,19 @@ const GEMINI_MODEL = 'gemini-flash-lite-latest';
 
 interface GeneratePlanOptions {
   wish: string;
-  category: CategoryId;
   apiKey?: string;
   language?: string;
+}
+
+export interface GeneratePlanResult {
+  categories: CategoryId[];
+  aiPlan: AIPlan;
+}
+
+function extractCategories(raw: unknown): CategoryId[] {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return ['other'];
+  const obj = raw as Record<string, unknown>;
+  return normalizeCategories(obj.categories);
 }
 
 interface GeminiPart {
@@ -46,10 +56,9 @@ function extractText(payload: GeminiResponsePayload): string {
 
 export async function generatePlan({
   wish,
-  category,
   apiKey,
   language = 'zh',
-}: GeneratePlanOptions): Promise<AIPlan> {
+}: GeneratePlanOptions): Promise<GeneratePlanResult> {
   if (!apiKey) {
     throw new Error(serverMessage(language, 'noApiKey'));
   }
@@ -63,7 +72,7 @@ export async function generatePlan({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: buildPrompt(wish, category, language) }] }],
+      contents: [{ parts: [{ text: buildPrompt(wish, language) }] }],
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 1.2,
@@ -94,7 +103,9 @@ export async function generatePlan({
 
   try {
     const rawParsed: unknown = JSON.parse(responseText);
-    return sanitizeAiPlan(rawParsed);
+    const categories = extractCategories(rawParsed);
+    const aiPlan = sanitizeAiPlan(rawParsed);
+    return { categories, aiPlan };
   } catch {
     throw new Error(serverMessage(language, 'invalidModelJson'));
   }

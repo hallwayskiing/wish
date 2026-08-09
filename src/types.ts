@@ -33,8 +33,7 @@ export interface AIPlan {
 export interface Wish {
   id: string;
   title: string;
-  category: string;
-  categoryName: string;
+  categories: string[];
   createdAt: string;
   blessings: number;
   aiPlan: AIPlan;
@@ -44,7 +43,7 @@ export interface Wish {
 
 export interface WishInput {
   title: string;
-  category?: string;
+  categories: string[];
 }
 
 export interface UnpaginatedWishListResult {
@@ -61,8 +60,7 @@ export interface WishListResult {
 
 export interface AdminWishUpdateInput {
   title: string;
-  category: string;
-  categoryName?: string;
+  categories: string[];
   blessings: number;
   aiPlan: AIPlan;
 }
@@ -70,8 +68,7 @@ export interface AdminWishUpdateInput {
 export interface RawWishRow {
   id: string;
   title: string;
-  category: string;
-  categoryName: string;
+  categories: string | null;
   createdAt: string;
   blessings: number;
   aiPlan: string;

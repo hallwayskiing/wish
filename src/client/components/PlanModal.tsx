@@ -31,7 +31,9 @@ export const PlanModal: React.FC<PlanModalProps> = ({
   if (!isOpen || !wish) return null;
 
   const plan = wish.aiPlan || {};
-  const categoryName = getCategoryName(wish.category, language, t('beautifulWish'));
+  const categoryName =
+    wish.categories.map(c => getCategoryName(c, language, t('beautifulWish'))).join(' · ') ||
+    t('beautifulWish');
 
   const dateStr = new Date(wish.createdAt).toLocaleString(language === 'en' ? 'en-US' : 'zh-CN', {
     year: 'numeric',

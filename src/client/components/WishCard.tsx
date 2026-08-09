@@ -44,7 +44,8 @@ export const WishCard: React.FC<WishCardProps> = ({
   });
   const summary = wish.aiPlan?.summary?.trim() || t('summaryFallback');
   const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
-  const categoryName = getCategoryName(wish.category, language, t('wishFallback'));
+  const categoryNames = wish.categories.map(c => getCategoryName(c, language, t('wishFallback')));
+  const categoryLabel = categoryNames.join(' · ') || t('wishFallback');
 
   const handleBless = async () => {
     if (isBlessing) return;
@@ -82,10 +83,7 @@ export const WishCard: React.FC<WishCardProps> = ({
     >
       <div>
         <div className="card-top">
-          <span className="card-cat-badge">{categoryName}</span>
-          {wish.status === 'completed' && (
-            <span className="card-completed-badge">🎉 {t('completedBadge')}</span>
-          )}
+          <span className="card-cat-badge">{categoryLabel}</span>
           <span className="card-date">{date}</span>
         </div>
         <h3 className="card-wish-text">“{wish.title}”</h3>
@@ -132,6 +130,11 @@ export const WishCard: React.FC<WishCardProps> = ({
           {t('viewPlan')}
         </button>
       </div>
+      {wish.status === 'completed' && (
+        <div className="completed-stamp" role="img" aria-label={t('completedStamp')}>
+          <span>{t('completedStamp')}</span>
+        </div>
+      )}
     </div>
   );
 };

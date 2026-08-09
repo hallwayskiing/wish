@@ -185,14 +185,6 @@ export async function createWishPoster(
   context.fillStyle = vignette;
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  context.strokeStyle = POSTER_THEME.border;
-  context.lineWidth = 1;
-  strokeRoundedRect(context, 36, 36, 1008, 1368, 30);
-  context.strokeStyle = POSTER_THEME.borderSoft;
-  strokeRoundedRect(context, 50, 50, 980, 1340, 24);
-  drawCornerMark(context, 50, 50, 1, 1);
-  drawCornerMark(context, 1030, 1390, -1, -1);
-
   const fontFamily =
     language === 'en'
       ? '"Plus Jakarta Sans", "Noto Sans SC", sans-serif'
@@ -203,8 +195,12 @@ export async function createWishPoster(
     month: 'long',
     day: 'numeric',
   });
-  const category = getCategoryName(wish.category, language, t('wishFallback'));
+  const category =
+    wish.categories.map(c => getCategoryName(c, language, t('wishFallback'))).join(' · ') ||
+    t('wishFallback');
   const inspiration = wish.aiPlan?.inspiration || t('inspirationFallback');
+  const summary = wish.aiPlan?.summary?.trim() || t('summaryFallback');
+  const isCompleted = wish.status === 'completed';
 
   drawDiamond(context, 82, 91, 13, POSTER_THEME.accent);
   context.fillStyle = POSTER_THEME.textStrong;
@@ -247,9 +243,13 @@ export async function createWishPoster(
 
   context.fillStyle = POSTER_THEME.textSecondary;
   context.font = `600 18px ${fontFamily}`;
-  context.fillText(t('posterWishLabel').toUpperCase(), 80, 360);
+  const wishLabelText = t('posterWishLabel').toUpperCase();
+  const wishLabelWidth = context.measureText(wishLabelText).width;
+  context.fillText(wishLabelText, 80, 360);
   context.fillStyle = POSTER_THEME.accent;
   context.fillRect(80, 397, 42, 3);
+  const stampX = 80 + wishLabelWidth + 92;
+  const stampY = 354;
 
   const titleY = 526;
   const titleLineHeight = 70;
@@ -259,58 +259,145 @@ export async function createWishPoster(
   const titleLines = wrapPosterText(context, wish.title, 920, 4);
   drawPosterLines(context, titleLines, titleX, titleY, titleLineHeight);
 
-  context.fillStyle = POSTER_THEME.surfaceSoft;
-  fillRoundedRect(context, 64, 790, 952, 330, 28);
-  context.strokeStyle = POSTER_THEME.border;
+  // forest-like blocks: poetic slip + inspiration
+  const boxY = titleY + titleLines.length * titleLineHeight + 36;
+  const summaryH = 132;
+  const inspirationH = 176;
+  const inspirationY = boxY + summaryH + 16;
+
+  // summary — poetic slip (wall .card-summary)
+  context.fillStyle = 'rgba(255,255,255,0.025)';
+  fillRoundedRect(context, 64, boxY, 952, summaryH, 10);
+  context.strokeStyle = 'rgba(255,255,255,0.06)';
   context.lineWidth = 1;
-  strokeRoundedRect(context, 64, 790, 952, 330, 28);
-  context.fillStyle = POSTER_THEME.accentSoft;
-  fillRoundedRect(context, 96, 826, 46, 46, 14);
-  drawDiamond(context, 119, 849, 10, POSTER_THEME.accent);
+  strokeRoundedRect(context, 64, boxY, 952, summaryH, 10);
+  // left accent border + vertical gradient line (like .card-summary::before)
+  context.fillStyle = 'rgba(207,176,126,0.38)';
+  context.fillRect(64, boxY + 8, 1.5, summaryH - 16);
+  const summaryLineGrad = context.createLinearGradient(65, boxY + 7, 65, boxY + summaryH - 7);
+  summaryLineGrad.addColorStop(0, 'transparent');
+  summaryLineGrad.addColorStop(0.5, 'rgba(207,176,126,0.55)');
+  summaryLineGrad.addColorStop(1, 'transparent');
+  context.fillStyle = summaryLineGrad;
+  context.fillRect(64, boxY + 7, 1, summaryH - 14);
 
-  context.fillStyle = POSTER_THEME.accent;
-  context.font = `600 22px ${fontFamily}`;
-  context.fillText(t('inspirationTitle'), 162, 857);
-  context.fillStyle = POSTER_THEME.text;
-  context.font = `400 29px ${fontFamily}`;
-  drawPosterLines(context, wrapPosterText(context, inspiration, 820, 5), 98, 918, 43);
+  context.fillStyle = '#a8905f';
+  context.font = `600 13px ${fontFamily}`;
+  context.fillText(`🍃  ${t('summaryLabel').toUpperCase()}`, 88, boxY + 38);
+  const serifZh = '"Source Han Serif SC", "Noto Serif SC", serif';
+  const serifEn = '"Cormorant Garamond", "EB Garamond", Georgia, serif';
+  const summarySerif = language === 'en' ? serifEn : serifZh;
+  context.fillStyle = '#e8dcc3';
+  context.font = `400 22px ${summarySerif}`;
+  context.textAlign = 'left';
+  drawPosterLines(context, wrapPosterText(context, `“${summary}”`, 888, 2), 88, boxY + 68, 30);
+  context.textAlign = 'left';
 
+  // inspiration — wall .card-ai-preview
+  const inspGrad = context.createLinearGradient(0, inspirationY, 0, inspirationY + inspirationH);
+  inspGrad.addColorStop(0, 'rgba(207,176,126,0.07)');
+  inspGrad.addColorStop(1, 'rgba(0,0,0,0.14)');
+  context.fillStyle = inspGrad;
+  fillRoundedRect(context, 64, inspirationY, 952, inspirationH, 10);
+  context.strokeStyle = 'rgba(255,255,255,0.06)';
+  context.lineWidth = 1;
+  strokeRoundedRect(context, 64, inspirationY, 952, inspirationH, 10);
+  // top accent border
+  context.strokeStyle = 'rgba(207,176,126,0.22)';
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(64, inspirationY + 0.5);
+  context.lineTo(1016, inspirationY + 0.5);
+  context.stroke();
+  // centered hairline
+  context.fillStyle = 'rgba(207,176,126,0.55)';
+  context.shadowColor = 'rgba(207,176,126,0.35)';
+  context.shadowBlur = 8;
+  context.fillRect(522, inspirationY, 36, 1);
+  context.shadowBlur = 0;
+
+  context.fillStyle = '#a8905f';
+  context.font = `600 12px ${fontFamily}`;
+  context.fillText(`✨  ${t('inspirationTitle').toUpperCase()}`, 88, inspirationY + 36);
+  context.fillStyle = '#8a8a8d';
+  context.font = `italic 400 21px ${fontFamily}`;
+  drawPosterLines(context, wrapPosterText(context, inspiration, 888, 3), 88, inspirationY + 66, 30);
+
+  if (isCompleted) {
+    context.save();
+    context.translate(stampX, stampY);
+    context.rotate((18 * Math.PI) / 180);
+    context.strokeStyle = '#10b981';
+    context.lineWidth = 3;
+    context.beginPath();
+    context.arc(0, 0, 62, 0, Math.PI * 2);
+    context.stroke();
+    context.strokeStyle = 'rgba(16,185,129,0.45)';
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.arc(0, 0, 54, 0, Math.PI * 2);
+    context.stroke();
+    context.fillStyle = '#6ee7b7';
+    context.font = `800 20px ${fontFamily}`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(t('completedStamp'), 0, 0);
+    context.restore();
+    context.textAlign = 'left';
+    context.textBaseline = 'alphabetic';
+  }
+
+  const dividerY = inspirationY + inspirationH + 32;
   context.strokeStyle = POSTER_THEME.border;
   context.beginPath();
-  context.moveTo(80, 1172);
-  context.lineTo(1000, 1172);
+  context.moveTo(80, dividerY);
+  context.lineTo(1000, dividerY);
   context.stroke();
 
   context.fillStyle = POSTER_THEME.textMuted;
   context.font = `500 17px ${fontFamily}`;
-  context.fillText(t('posterBlessingsLabel').toUpperCase(), 80, 1213);
+  context.fillText(t('posterBlessingsLabel').toUpperCase(), 80, dividerY + 40);
   context.fillStyle = POSTER_THEME.accent;
   context.font = `600 29px ${fontFamily}`;
-  context.fillText(`✦  ${wish.blessings || 0}`, 80, 1254);
+  context.fillText(`✦  ${wish.blessings || 0}`, 80, dividerY + 80);
 
   context.textAlign = 'right';
   context.fillStyle = POSTER_THEME.textMuted;
   context.font = `500 17px ${fontFamily}`;
-  context.fillText(t('posterDateLabel').toUpperCase(), 1000, 1213);
+  context.fillText(t('posterDateLabel').toUpperCase(), 1000, dividerY + 40);
   context.fillStyle = POSTER_THEME.textSecondary;
   context.font = `400 22px ${fontFamily}`;
-  context.fillText(date, 1000, 1254);
+  context.fillText(date, 1000, dividerY + 80);
   context.textAlign = 'left';
 
+  // compact footer — directly below blessings, no large gap
+  const footerLineY = dividerY + 108;
+  const footerQuoteY = footerLineY + 36;
   context.strokeStyle = POSTER_THEME.borderSoft;
   context.beginPath();
-  context.moveTo(80, 1304);
-  context.lineTo(1000, 1304);
+  context.moveTo(80, footerLineY);
+  context.lineTo(1000, footerLineY);
   context.stroke();
 
   context.fillStyle = POSTER_THEME.textMuted;
-  context.font = `400 18px ${fontFamily}`;
-  context.fillText(t('footerQuote'), 80, 1352);
+  context.font = `400 15px ${fontFamily}`;
+  context.fillText(t('footerQuote'), 80, footerQuoteY);
   context.textAlign = 'right';
   context.fillStyle = POSTER_THEME.accent;
-  context.font = `500 18px ${fontFamily}`;
-  context.fillText(t('brand'), 1000, 1352);
+  context.font = `500 15px ${fontFamily}`;
+  context.fillText(t('brand'), 1000, footerQuoteY);
   context.textAlign = 'left';
+
+  // outer/inner frame hugging footer — eliminates bottom blank
+  const outerH = footerQuoteY + 36 - 36;
+  const innerH = footerQuoteY + 22 - 50;
+  context.strokeStyle = POSTER_THEME.border;
+  context.lineWidth = 1;
+  strokeRoundedRect(context, 36, 36, 1008, outerH, 30);
+  context.strokeStyle = POSTER_THEME.borderSoft;
+  strokeRoundedRect(context, 50, 50, 980, innerH, 24);
+  drawCornerMark(context, 50, 50, 1, 1);
+  drawCornerMark(context, 50 + 980, 50 + innerH, -1, -1);
 
   if (!wish.id) throw new Error('Wish has no database ID');
   return {

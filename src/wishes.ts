@@ -1,4 +1,4 @@
-import { CATEGORY_NAMES, normalizeCategory } from './categories.js';
+import { normalizeCategories } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { generatePlan } from './model.js';
 import { serverMessage } from './server-messages.js';
@@ -7,6 +7,7 @@ import {
   bindStatement,
   MAX_PLAN_LENGTH,
   parseWishRow,
+  serializeCategories,
   serializePlan,
   VALID_CATEGORIES,
   WISH_FIELDS,
@@ -24,7 +25,7 @@ function createWishId(): string {
 
 interface CreateWishDraftBody {
   wish?: string;
-  category?: string;
+  categories?: string[];
   customApiKey?: string;
   language?: string;
 }
@@ -38,12 +39,9 @@ export async function createWishDraft(request: Request): Promise<Response> {
     return json({ error: serverMessage(language, 'emptyWish') }, 400);
   }
 
-  const category = normalizeCategory(body?.category);
-
   try {
-    const aiPlan = await generatePlan({
+    const { categories, aiPlan } = await generatePlan({
       wish: title,
-      category,
       apiKey: body?.customApiKey,
       language,
     });
@@ -52,8 +50,7 @@ export async function createWishDraft(request: Request): Promise<Response> {
       wish: {
         id: createWishId(),
         title,
-        category,
-        categoryName: CATEGORY_NAMES[language][category],
+        categories,
         createdAt: new Date().toISOString(),
         blessings: 0,
         aiPlan,
@@ -93,30 +90,29 @@ export async function saveWish(request: Request, env: Env): Promise<Response> {
     return json({ error: serverMessage(language, 'planTooLong') }, 400);
   }
 
-  const category = normalizeCategory(draft.category);
+  const categories = normalizeCategories(draft.categories);
   const parsedDate = draft.createdAt ? Date.parse(draft.createdAt) : NaN;
   const savedWish: Wish = {
     id: typeof draft.id === 'string' && WISH_ID_PATTERN.test(draft.id) ? draft.id : createWishId(),
     title,
-    category,
-    categoryName: CATEGORY_NAMES[language][category],
+    categories,
     createdAt: Number.isNaN(parsedDate)
       ? new Date().toISOString()
       : new Date(parsedDate).toISOString(),
     blessings: 0,
     aiPlan: draft.aiPlan ?? {},
   };
+  const serializedCategories = serializeCategories(categories);
 
   try {
     await env.DB.prepare(`
-      INSERT INTO wishes (id, title, category, categoryName, createdAt, blessings, aiPlan)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO wishes (id, title, categories, createdAt, blessings, aiPlan)
+      VALUES (?, ?, ?, ?, ?, ?)
     `)
       .bind(
         savedWish.id,
         savedWish.title,
-        savedWish.category,
-        savedWish.categoryName,
+        serializedCategories,
         savedWish.createdAt,
         savedWish.blessings,
         serializedPlan
@@ -154,13 +150,14 @@ export async function listWishes(url: URL, env: Env): Promise<Response> {
   }
 
   if (category && category !== 'all' && VALID_CATEGORIES.has(category)) {
-    conditions.push('category = ?');
-    params.push(category);
+    conditions.push('categories LIKE ?');
+    params.push(`%"${category}"%`);
   }
   if (search) {
-    conditions.push('(title LIKE ? OR categoryName LIKE ?)');
-    const term = `%${search}%`;
-    params.push(term, term);
+    const escaped = search.replace(/[%_\\]/g, '\\$&');
+    conditions.push("title LIKE ? ESCAPE '\\'");
+    const term = `%${escaped}%`;
+    params.push(term);
   }
 
   const where = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';

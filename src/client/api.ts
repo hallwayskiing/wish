@@ -29,13 +29,12 @@ async function apiFetch<T>(
 export const WishAPI = {
   submitWish: (
     wish: string,
-    category: string,
     customApiKey?: string,
     language = 'zh'
   ): Promise<{ success: boolean; wish: Wish }> =>
     apiFetch<{ success: boolean; wish: Wish }>('/wish', {
       method: 'POST',
-      body: JSON.stringify({ wish, category, customApiKey, language }),
+      body: JSON.stringify({ wish, customApiKey, language }),
     }),
 
   saveWish: async (wish: Wish, language = 'zh'): Promise<Wish> => {

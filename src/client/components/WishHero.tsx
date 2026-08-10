@@ -77,9 +77,6 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
   return (
     <section className="wish-hero" id="wish-hero">
       <div className="hero-content">
-        <div className="hero-badge">
-          <span>{t('heroBadge')}</span>
-        </div>
         <h1 className="hero-title">
           <span>{t('heroTitle')}</span>
           <span className="gradient-text">{t('heroTitleAccent')}</span>

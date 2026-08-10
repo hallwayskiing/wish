@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenApiKeyModal }) => {
             <span className="key-icon" aria-hidden="true">
               ⚙️
             </span>{' '}
-            Google API
+            {t('apiConfigShort')}
           </button>
           <button
             className="api-key-btn language-toggle-btn"

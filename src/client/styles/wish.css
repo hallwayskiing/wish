@@ -13,21 +13,6 @@
   margin: 0 auto;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: var(--accent-glow);
-  border: 1px solid var(--border-accent-soft);
-  color: var(--accent);
-  padding: 0.35rem 1.1rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  margin-bottom: 1.8rem;
-}
-
 .hero-title {
   font-size: 2.6rem;
   font-weight: 700;

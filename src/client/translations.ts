@@ -7,9 +7,9 @@ export interface TranslationDictionary {
   navWish: string;
   navWall: string;
   apiConfigTitle: string;
+  apiConfigShort: string;
   languageToggleLabel: string;
   languageToggleTitle: string;
-  heroBadge: string;
   heroTitle: string;
   heroTitleAccent: string;
   heroSubtitle: string;
@@ -91,10 +91,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     primaryNavLabel: '主要导航',
     navWish: '祈愿台',
     navWall: '愿望森林',
-    apiConfigTitle: '配置 Google API 密钥',
+    apiConfigTitle: '配置密钥',
+    apiConfigShort: '模型服务',
     languageToggleLabel: 'EN',
     languageToggleTitle: 'Switch to English',
-    heroBadge: '✦ 祈愿星光',
     heroTitle: '许下微光心愿，',
     heroTitleAccent: '凝筑从愿景到现实的落地阶梯',
     heroSubtitle: '每一个真挚的心愿都值得被深刻呈现。在此祈愿并生成专属行动方案。',
@@ -119,20 +119,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     phaseLabel: '阶段',
     save: '保存心愿到森林',
     apiModalTip:
-      '请输入您的 Google API 密钥，用于调用 Google Gemini 服务生成愿望行动方案。密钥仅保存在当前浏览器中。',
-    apiKeyLabel: 'Google API Key：',
-    clearApiKey: '清除 Key',
+      '本站使用 Google Gemini 作为模型服务。请输入您的 Gemini API Key，用于生成愿望行动方案。密钥仅保存在当前浏览器中。',
+    apiKeyLabel: 'Gemini API Key：',
+    clearApiKey: '清除密钥',
     saveConfig: '保存配置',
     footerQuote: '“星光不问赶路人，岁月不负有心人。”',
     loadingPhrases: [
-      '正在感应并解析你的心愿...',
-      '正在梳理愿望核心与潜在阻力...',
-      '正在推演心愿落地的行动路径...',
-      '正在凝练关键建议与启程第一步...',
+      '正在感应你的心愿...',
+      '正在梳理愿望核心...',
+      '正在推演心愿落地路径...',
+      '正在凝练启程第一步...',
       '正在为心愿点缀诗意...',
     ],
-    apiKeySaved: '✦ Google API 密钥已保存',
-    apiKeyCleared: '已清除 Google API 密钥',
+    apiKeySaved: '✦ 密钥已保存',
+    apiKeyCleared: '已清除密钥',
     generationError: '许愿处理超时，请重试',
     generationComplete: '✨ 愿望蓝图构建完成！',
     beautifulWish: '美好心愿',
@@ -181,10 +181,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     primaryNavLabel: 'Primary navigation',
     navWish: 'Wishing Well',
     navWall: 'Wish Forest',
-    apiConfigTitle: 'Configure Google API Key',
+    apiConfigTitle: 'Configure Key',
+    apiConfigShort: 'Model Service',
     languageToggleLabel: '中文',
     languageToggleTitle: '切换到中文',
-    heroBadge: '✦ Make a Cosmic Wish',
     heroTitle: 'Make a wish, ',
     heroTitleAccent: 'build a path from vision to reality',
     heroSubtitle:
@@ -210,20 +210,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     phaseLabel: 'Phase',
     save: 'Save to Forest',
     apiModalTip:
-      'Enter your Google API key to generate wish action plans with Google Gemini. The key is stored only in this browser.',
-    apiKeyLabel: 'Google API Key:',
+      'Our site uses Google Gemini as the model service. Enter your Gemini API Key to generate wish action plans. The key is stored only in this browser.',
+    apiKeyLabel: 'Gemini API Key:',
     clearApiKey: 'Clear Key',
     saveConfig: 'Save Config',
     footerQuote: '“May every step beneath the stars bring your wish closer.”',
     loadingPhrases: [
-      'Sensing and interpreting your wish...',
-      'Mapping its core goals and potential obstacles...',
+      'Sensing your wish...',
+      'Mapping its core goals...',
       'Designing a practical path forward...',
-      'Refining key guidance and your first step...',
-      'Distilling your wish into poetic verse...',
+      'Refining your first step...',
+      'Distilling your wish into verse...',
     ],
-    apiKeySaved: '✦ Google API key saved',
-    apiKeyCleared: 'Google API key cleared',
+    apiKeySaved: '✦ Key saved',
+    apiKeyCleared: 'Key cleared',
     generationError: 'Generation timed out. Please try again.',
     generationComplete: '✨ Your wish blueprint is ready!',
     beautifulWish: 'A Beautiful Wish',

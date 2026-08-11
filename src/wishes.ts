@@ -28,6 +28,7 @@ interface CreateWishDraftBody {
   categories?: string[];
   customApiKey?: string;
   language?: string;
+  modelTier?: string;
 }
 
 export async function createWishDraft(request: Request): Promise<Response> {
@@ -44,6 +45,7 @@ export async function createWishDraft(request: Request): Promise<Response> {
       wish: title,
       apiKey: body?.customApiKey,
       language,
+      modelTier: body?.modelTier,
     });
     return json({
       success: true,

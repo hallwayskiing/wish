@@ -4,12 +4,34 @@ import { serverMessage } from './server-messages.js';
 import type { AIPlan } from './types.js';
 import { sanitizeAiPlan } from './wish-data.js';
 
-const GEMINI_MODEL = 'gemini-flash-lite-latest';
+export const GEMINI_TIERS = ['LITE', 'FLASH', 'PRO'] as const;
+export type GeminiTier = (typeof GEMINI_TIERS)[number];
+
+export const GEMINI_MODEL_MAP: Record<GeminiTier, string> = {
+  LITE: 'gemini-flash-lite-latest',
+  FLASH: 'gemini-flash-latest',
+  PRO: 'gemini-pro-latest',
+};
+
+export const DEFAULT_GEMINI_TIER: GeminiTier = 'LITE';
+
+export function normalizeGeminiTier(input: unknown): GeminiTier {
+  if (typeof input === 'string') {
+    const v = input.trim().toUpperCase();
+    if (v === 'LITE' || v === 'FLASH' || v === 'PRO') return v;
+  }
+  return DEFAULT_GEMINI_TIER;
+}
+
+export function getGeminiModel(tier: unknown): string {
+  return GEMINI_MODEL_MAP[normalizeGeminiTier(tier)];
+}
 
 interface GeneratePlanOptions {
   wish: string;
   apiKey?: string;
   language?: string;
+  modelTier?: string;
 }
 
 export interface GeneratePlanResult {
@@ -58,13 +80,15 @@ export async function generatePlan({
   wish,
   apiKey,
   language = 'zh',
+  modelTier,
 }: GeneratePlanOptions): Promise<GeneratePlanResult> {
   if (!apiKey) {
     throw new Error(serverMessage(language, 'noApiKey'));
   }
 
+  const modelName = getGeminiModel(modelTier);
   const endpoint = new URL(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
+    `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`
   );
   endpoint.searchParams.set('key', apiKey);
 

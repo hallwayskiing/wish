@@ -4,6 +4,9 @@ import './styles/style.css';
 import './styles/wish.css';
 import './styles/poetic.css';
 import './styles/modal.css';
+import './styles/api-key-modal.css';
+import './styles/plan-modal.css';
+import './styles/poster-modal.css';
 import './styles/wall.css';
 
 import { ApiKeyModal } from './components/ApiKeyModal.js';
@@ -24,6 +27,10 @@ const MainContent: React.FC = () => {
   const [customApiKey, setCustomApiKey] = useState<string>(
     () => localStorage.getItem('gemini_api_key') || ''
   );
+  const [modelTier, setModelTier] = useState<string>(() => {
+    const v = localStorage.getItem('gemini_model_tier');
+    return v === 'FLASH' || v === 'PRO' || v === 'LITE' ? v : 'LITE';
+  });
 
   // Modals state
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
@@ -72,13 +79,16 @@ const MainContent: React.FC = () => {
     toastTimersRef.current.add(timer);
   }, []);
 
-  const handleSaveApiKey = (key: string) => {
+  const handleSaveApiKey = (key: string, tier: string) => {
     setCustomApiKey(key);
+    const normalizedTier = tier === 'FLASH' || tier === 'PRO' ? tier : 'LITE';
+    setModelTier(normalizedTier);
     if (key) {
       localStorage.setItem('gemini_api_key', key);
     } else {
       localStorage.removeItem('gemini_api_key');
     }
+    localStorage.setItem('gemini_model_tier', normalizedTier);
     showToast(t(key ? 'apiKeySaved' : 'apiKeyCleared'));
   };
 
@@ -124,6 +134,7 @@ const MainContent: React.FC = () => {
       <main className="main-content">
         <WishHero
           customApiKey={customApiKey}
+          modelTier={modelTier}
           onWishCreated={handleWishCreated}
           onShowToast={showToast}
         />
@@ -141,6 +152,7 @@ const MainContent: React.FC = () => {
       <ApiKeyModal
         isOpen={isApiKeyModalOpen}
         apiKey={customApiKey}
+        modelTier={modelTier}
         onClose={() => setIsApiKeyModalOpen(false)}
         onSaveApiKey={handleSaveApiKey}
       />

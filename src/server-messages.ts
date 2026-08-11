@@ -15,6 +15,7 @@ type MessageKey =
   | 'updateFailed'
   | 'deleteFailed'
   | 'noApiKey'
+  | 'modelMissing'
   | 'modelRequestFailed'
   | 'emptyModelResponse'
   | 'invalidModelJson'
@@ -44,6 +45,7 @@ const SERVER_MESSAGES: Readonly<Record<'zh' | 'en', Readonly<Record<MessageKey, 
       updateFailed: '更新愿望失败。',
       deleteFailed: '删除愿望失败。',
       noApiKey: '未配置 API Key，请打开【模型服务】并填写密钥。',
+      modelMissing: '未配置模型，请在 wrangler.jsonc 或 .dev.vars 中设置 GEMINI_MODEL。',
       modelRequestFailed: (detail?: string) => `大模型调用失败：${detail || ''}`,
       emptyModelResponse: '大模型返回了空内容。',
       invalidModelJson: '大模型返回的 JSON 格式无效，请重试。',
@@ -69,6 +71,7 @@ const SERVER_MESSAGES: Readonly<Record<'zh' | 'en', Readonly<Record<MessageKey, 
       updateFailed: 'Could not update the wish.',
       deleteFailed: 'Could not delete the wish.',
       noApiKey: 'No API key configured. Open Model Service and enter your key.',
+      modelMissing: 'Model not configured. Set GEMINI_MODEL in wrangler.jsonc or .dev.vars.',
       modelRequestFailed: (detail?: string) => `Model request failed: ${detail || ''}`,
       emptyModelResponse: 'The model returned an empty response.',
       invalidModelJson: 'The model returned invalid JSON. Please try again.',

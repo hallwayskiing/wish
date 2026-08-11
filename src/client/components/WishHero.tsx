@@ -6,11 +6,17 @@ import type { Wish } from '../types.js';
 
 interface WishHeroProps {
   customApiKey: string;
+  modelTier: string;
   onWishCreated: (wish: Wish) => void;
   onShowToast: (msg: string) => void;
 }
 
-export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated, onShowToast }) => {
+export const WishHero: React.FC<WishHeroProps> = ({
+  customApiKey,
+  modelTier,
+  onWishCreated,
+  onShowToast,
+}) => {
   const { language, t, dict } = useLanguage();
   const [wishText, setWishText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +65,7 @@ export const WishHero: React.FC<WishHeroProps> = ({ customApiKey, onWishCreated,
     setIsLoading(true);
 
     try {
-      const res = await WishAPI.submitWish(textToSubmit, customApiKey, language);
+      const res = await WishAPI.submitWish(textToSubmit, customApiKey, language, modelTier);
       setProgress(100);
       completionTimerRef.current = setTimeout(() => {
         completionTimerRef.current = null;

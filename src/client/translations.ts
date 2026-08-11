@@ -35,6 +35,10 @@ export interface TranslationDictionary {
   save: string;
   apiModalTip: string;
   apiKeyLabel: string;
+  modelLabel: string;
+  modelTierLite: string;
+  modelTierFlash: string;
+  modelTierPro: string;
   clearApiKey: string;
   saveConfig: string;
   footerQuote: string;
@@ -121,6 +125,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     apiModalTip:
       '本站使用 Google Gemini 作为模型服务。请输入您的 Gemini API Key，用于生成愿望行动方案。密钥仅保存在当前浏览器中。',
     apiKeyLabel: 'Gemini API Key：',
+    modelLabel: '模型档位：',
+    modelTierLite: 'LITE · 极速',
+    modelTierFlash: 'FLASH · 均衡',
+    modelTierPro: 'PRO · 最佳',
     clearApiKey: '清除密钥',
     saveConfig: '保存配置',
     footerQuote: '“星光不问赶路人，岁月不负有心人。”',
@@ -212,6 +220,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     apiModalTip:
       'Our site uses Google Gemini as the model service. Enter your Gemini API Key to generate wish action plans. The key is stored only in this browser.',
     apiKeyLabel: 'Gemini API Key:',
+    modelLabel: 'Model Tier:',
+    modelTierLite: 'LITE · Fast',
+    modelTierFlash: 'FLASH · Balanced',
+    modelTierPro: 'PRO · Strongest',
     clearApiKey: 'Clear Key',
     saveConfig: 'Save Config',
     footerQuote: '“May every step beneath the stars bring your wish closer.”',

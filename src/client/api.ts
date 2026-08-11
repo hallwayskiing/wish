@@ -30,11 +30,12 @@ export const WishAPI = {
   submitWish: (
     wish: string,
     customApiKey?: string,
-    language = 'zh'
+    language = 'zh',
+    modelTier?: string
   ): Promise<{ success: boolean; wish: Wish }> =>
     apiFetch<{ success: boolean; wish: Wish }>('/wish', {
       method: 'POST',
-      body: JSON.stringify({ wish, customApiKey, language }),
+      body: JSON.stringify({ wish, customApiKey, language, modelTier }),
     }),
 
   saveWish: async (wish: Wish, language = 'zh'): Promise<Wish> => {

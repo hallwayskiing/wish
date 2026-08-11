@@ -53,7 +53,7 @@ migrations/  wrangler.jsonc  vite.config.ts  tsconfig.json
 - `WishWall` must handle `AbortController` cancellation.
 - Poster `src/client/poster.ts` — handle `wrapPosterText` for cross-language wrapping and `document.fonts.ready`.
 - Dialogs use `useDialogA11y` (`aria-modal`, `data-dialog-close`, `Escape`); backdrop uses `modal-overlay` button + `role=dialog` sibling pattern (no `biome-ignore`).
-- Styles: `fieldset.category-selector` must be reset (`border:0; padding:0; margin:0; min-width:0`) — `legend` carries `section-label`.
+- Styles: `fieldset.category-selector` must be reset (`border:0; padding:0; margin:0; min-width:0`) — `legend` carries `section-label`; authored CSS should use standard properties by default. The allowed hand-written compatibility exceptions are the proven multi-line ellipsis set (`display: -webkit-box`, `-webkit-box-orient`, `-webkit-line-clamp`) and platform font smoothing (`-webkit-font-smoothing`, `-moz-osx-font-smoothing`); rely on Vite's target-aware build tooling for other compatibility prefixes.
 - Lint/Formatting: single tool `Biome` (`biome.json`, `preset: recommended` + all rules `error`); no `eslint`/`prettier` — use `npm run lint` / `npm run format`, never suppress a11y/complexity.
 
 ## Workflow

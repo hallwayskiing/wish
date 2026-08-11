@@ -87,7 +87,6 @@
   letter-spacing: 0.16em;
   font-style: normal;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
   font-feature-settings:
     "palt" 1,
     "kern" 1;

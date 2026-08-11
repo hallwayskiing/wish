@@ -197,7 +197,6 @@
 
 .completed-checkbox {
   appearance: none;
-  -webkit-appearance: none;
   width: 15px;
   height: 15px;
   border: 1px solid var(--border-medium);
@@ -441,7 +440,6 @@
   min-height: 2.05em;
   word-break: break-word;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
   font-feature-settings:
     "palt" 1,
     "kern" 1;

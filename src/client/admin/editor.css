@@ -27,8 +27,8 @@
   transition: background 0.2s ease;
 }
 
-.plan-editor summary::-webkit-details-marker {
-  display: none;
+.plan-editor summary::marker {
+  content: none;
 }
 
 .plan-editor summary:hover {

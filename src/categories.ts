@@ -1,12 +1,12 @@
 export const CATEGORY_IDS = Object.freeze([
   'growth',
   'career',
-  'study',
   'relationship',
   'health',
   'creative',
   'wealth',
   'philosophy',
+  'wild',
   'other',
 ] as const);
 
@@ -21,12 +21,12 @@ export function isCategoryId(category: string): category is CategoryId {
 export const CATEGORY_ICONS: Readonly<Record<CategoryId, string>> = Object.freeze({
   growth: '🌱',
   career: '🚀',
-  study: '🎓',
   relationship: '💞',
   health: '🏃',
-  creative: '💡',
+  creative: '🎨',
   wealth: '💰',
   philosophy: '📜',
+  wild: '💡',
   other: '🌈',
 });
 
@@ -34,24 +34,25 @@ export const CATEGORY_NAMES: Readonly<Record<'zh' | 'en', Readonly<Record<Catego
   Object.freeze({
     zh: Object.freeze({
       growth: '个人成长',
-      career: '事业突破',
-      study: '求知探索',
+      career: '事业发展',
       relationship: '情感关系',
       health: '健康生活',
-      creative: '奇思妙想',
-      wealth: '资产积淀',
+      creative: '创意灵感',
+      wealth: '财富管理',
       philosophy: '哲思哲理',
+      wild: '奇思妙想',
       other: '其他',
     }),
     en: Object.freeze({
       growth: 'Growth',
       career: 'Career',
-      study: 'Learning',
+      learning: 'Learning',
       relationship: 'Relationship',
       health: 'Health',
-      creative: 'Creativity',
+      creative: 'Creative',
       wealth: 'Wealth',
       philosophy: 'Philosophy',
+      wild: 'Wild',
       other: 'Other',
     }),
   });

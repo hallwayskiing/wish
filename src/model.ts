@@ -1,5 +1,5 @@
 import { type CategoryId, normalizeCategories } from './categories.js';
-import { buildPrompt } from './prompt.js';
+import { buildSystemPrompt } from './prompt.js';
 import { serverMessage } from './server-messages.js';
 import type { AIPlan } from './types.js';
 import { sanitizeAiPlan } from './wish-data.js';
@@ -96,13 +96,12 @@ export async function generatePlan({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: buildPrompt(wish, language) }] }],
+      systemInstruction: { parts: [{ text: buildSystemPrompt(language) }] },
+      contents: [{ role: 'user', parts: [{ text: wish }] }],
       generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 1.2,
-        topP: 0.95,
         thinkingConfig: {
-          thinkingBudget: 1024,
+          thinkingLevel: 'high',
           includeThoughts: false,
         },
       },

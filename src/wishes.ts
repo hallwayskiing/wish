@@ -1,6 +1,7 @@
 import { normalizeCategories } from './categories.js';
 import { json, parseJsonBody } from './http.js';
 import { generatePlan } from './model.js';
+import { normalizePersonalProfile } from './profile-library.js';
 import { serverMessage } from './server-messages.js';
 import type { Env, RawWishRow, Wish, WishListResult } from './types.js';
 import {
@@ -29,6 +30,7 @@ interface CreateWishDraftBody {
   customApiKey?: string;
   language?: string;
   modelTier?: string;
+  personalProfile?: unknown;
 }
 
 export async function createWishDraft(request: Request): Promise<Response> {
@@ -46,6 +48,7 @@ export async function createWishDraft(request: Request): Promise<Response> {
       apiKey: body?.customApiKey,
       language,
       modelTier: body?.modelTier,
+      personalProfile: normalizePersonalProfile(body?.personalProfile),
     });
     return json({
       success: true,

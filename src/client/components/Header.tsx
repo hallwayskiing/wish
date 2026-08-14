@@ -2,10 +2,11 @@ import React from 'react';
 import { useLanguage } from '../context/LanguageContext.js';
 
 interface HeaderProps {
+  onOpenProfileLibraryModal: () => void;
   onOpenApiKeyModal: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenApiKeyModal }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenProfileLibraryModal, onOpenApiKeyModal }) => {
   const { t, toggleLanguage } = useLanguage();
   const [activeNav, setActiveNav] = React.useState<'hero' | 'wall'>('hero');
 
@@ -66,15 +67,29 @@ export const Header: React.FC<HeaderProps> = ({ onOpenApiKeyModal }) => {
           </a>
           <button
             className="api-key-btn"
+            id="openProfileLibraryModalBtn"
+            title={t('profileLibraryTitle')}
+            aria-label={t('profileLibraryShort')}
+            onClick={onOpenProfileLibraryModal}
+            type="button"
+          >
+            <span className="key-icon" aria-hidden="true">
+              📚
+            </span>{' '}
+            <span className="header-action-label">{t('profileLibraryShort')}</span>
+          </button>
+          <button
+            className="api-key-btn"
             id="openApiKeyModalBtn"
             title={t('apiConfigTitle')}
+            aria-label={t('apiConfigShort')}
             onClick={onOpenApiKeyModal}
             type="button"
           >
             <span className="key-icon" aria-hidden="true">
               ⚙️
             </span>{' '}
-            {t('apiConfigShort')}
+            <span className="header-action-label">{t('apiConfigShort')}</span>
           </button>
           <button
             className="api-key-btn language-toggle-btn"

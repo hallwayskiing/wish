@@ -8,6 +8,18 @@ export interface TranslationDictionary {
   navWall: string;
   apiConfigTitle: string;
   apiConfigShort: string;
+  profileLibraryTitle: string;
+  profileLibraryShort: string;
+  profileLibraryTip: string;
+  profileEntryLabel: string;
+  profileEntryPlaceholder: string;
+  removeProfileEntry: string;
+  addProfileEntry: string;
+  profileEntryLimit: string;
+  saveProfile: string;
+  profileSaved: string;
+  profileCleared: string;
+  cancel: string;
   languageToggleLabel: string;
   languageToggleTitle: string;
   heroTitle: string;
@@ -97,6 +109,19 @@ export const translations: Record<Language, TranslationDictionary> = {
     navWall: '愿望森林',
     apiConfigTitle: '配置密钥',
     apiConfigShort: '模型服务',
+    profileLibraryTitle: '个人资料库',
+    profileLibraryShort: '资料库',
+    profileLibraryTip:
+      '记录有助于生成个性化方案的背景资料，例如职业、所在城市或长期目标。资料仅保存在本地浏览器中。',
+    profileEntryLabel: '资料',
+    profileEntryPlaceholder: '例如：我目前在上海从事产品设计。',
+    removeProfileEntry: '删除',
+    addProfileEntry: '新增一条资料',
+    profileEntryLimit: '资料条数',
+    saveProfile: '保存资料',
+    profileSaved: '✦ 资料库已保存',
+    profileCleared: '资料库已清空',
+    cancel: '取消',
     languageToggleLabel: 'EN',
     languageToggleTitle: 'Switch to English',
     heroTitle: '许下微光心愿，',
@@ -191,6 +216,19 @@ export const translations: Record<Language, TranslationDictionary> = {
     navWall: 'Wish Forest',
     apiConfigTitle: 'Configure Key',
     apiConfigShort: 'Model Service',
+    profileLibraryTitle: 'Personal Profile',
+    profileLibraryShort: 'Profile',
+    profileLibraryTip:
+      'Add background details to help with plan generation, such as your work, city or long-term goals. They stay in local browser only.',
+    profileEntryLabel: 'Detail',
+    profileEntryPlaceholder: 'For example: I work in product design in New York.',
+    removeProfileEntry: 'Remove',
+    addProfileEntry: 'Add a detail',
+    profileEntryLimit: 'Details',
+    saveProfile: 'Save Profile',
+    profileSaved: '✦ Profile saved',
+    profileCleared: 'Profile cleared',
+    cancel: 'Cancel',
     languageToggleLabel: '中文',
     languageToggleTitle: '切换到中文',
     heroTitle: 'Make a wish, ',

@@ -32,6 +32,7 @@ interface GeneratePlanOptions {
   apiKey?: string;
   language?: string;
   modelTier?: string;
+  personalProfile?: string[];
 }
 
 export interface GeneratePlanResult {
@@ -81,6 +82,7 @@ export async function generatePlan({
   apiKey,
   language = 'zh',
   modelTier,
+  personalProfile,
 }: GeneratePlanOptions): Promise<GeneratePlanResult> {
   if (!apiKey) {
     throw new Error(serverMessage(language, 'noApiKey'));
@@ -96,7 +98,7 @@ export async function generatePlan({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: buildSystemPrompt(language) }] },
+      systemInstruction: { parts: [{ text: buildSystemPrompt(language, personalProfile) }] },
       contents: [{ role: 'user', parts: [{ text: wish }] }],
       generationConfig: {
         responseMimeType: 'application/json',

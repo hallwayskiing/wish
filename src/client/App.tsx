@@ -5,6 +5,7 @@ import './styles/wish.css';
 import './styles/poetic.css';
 import './styles/modal.css';
 import './styles/api-key-modal.css';
+import './styles/profile-library-modal.css';
 import './styles/plan-modal.css';
 import './styles/poster-modal.css';
 import './styles/wall.css';
@@ -15,10 +16,12 @@ import { Header } from './components/Header.js';
 import { ParticleCanvas } from './components/ParticleCanvas.js';
 import { PlanModal } from './components/PlanModal.js';
 import { PosterModal } from './components/PosterModal.js';
+import { ProfileLibraryModal } from './components/ProfileLibraryModal.js';
 import { ToastContainer, type ToastMessage } from './components/ToastContainer.js';
 import { WishHero } from './components/WishHero.js';
 import { WishWall, type WishWallRef } from './components/WishWall.js';
 import { LanguageProvider, useLanguage } from './context/LanguageContext.js';
+import { loadPersonalProfile, savePersonalProfile } from './profile-storage.js';
 import type { Wish } from './types.js';
 
 const MainContent: React.FC = () => {
@@ -31,9 +34,11 @@ const MainContent: React.FC = () => {
     const v = localStorage.getItem('gemini_model_tier');
     return v === 'FLASH' || v === 'PRO' || v === 'LITE' ? v : 'LITE';
   });
+  const [personalProfile, setPersonalProfile] = useState<string[]>(loadPersonalProfile);
 
   // Modals state
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [isProfileLibraryModalOpen, setIsProfileLibraryModalOpen] = useState(false);
 
   const [planModalState, setPlanModalState] = useState<{
     isOpen: boolean;
@@ -100,6 +105,12 @@ const MainContent: React.FC = () => {
     });
   };
 
+  const handleSavePersonalProfile = (entries: string[]) => {
+    const savedEntries = savePersonalProfile(entries);
+    setPersonalProfile(savedEntries);
+    showToast(t(savedEntries.length > 0 ? 'profileSaved' : 'profileCleared'));
+  };
+
   const handleOpenPlanModal = (wish: Wish) => {
     setPlanModalState({
       isOpen: true,
@@ -129,12 +140,16 @@ const MainContent: React.FC = () => {
     <>
       <ParticleCanvas />
 
-      <Header onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)} />
+      <Header
+        onOpenProfileLibraryModal={() => setIsProfileLibraryModalOpen(true)}
+        onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+      />
 
       <main className="main-content">
         <WishHero
           customApiKey={customApiKey}
           modelTier={modelTier}
+          personalProfile={personalProfile}
           onWishCreated={handleWishCreated}
           onShowToast={showToast}
         />
@@ -155,6 +170,13 @@ const MainContent: React.FC = () => {
         modelTier={modelTier}
         onClose={() => setIsApiKeyModalOpen(false)}
         onSaveApiKey={handleSaveApiKey}
+      />
+
+      <ProfileLibraryModal
+        isOpen={isProfileLibraryModalOpen}
+        entries={personalProfile}
+        onClose={() => setIsProfileLibraryModalOpen(false)}
+        onSave={handleSavePersonalProfile}
       />
 
       <PlanModal

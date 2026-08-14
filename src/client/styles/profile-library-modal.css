@@ -1,0 +1,212 @@
+.profile-library-modal {
+  max-width: 640px;
+}
+
+.profile-library-modal .modal-header,
+.profile-library-modal .modal-footer {
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+}
+
+.profile-library-modal .modal-header {
+  padding-top: 1.4rem;
+  padding-right: 4rem;
+  padding-bottom: 1rem;
+}
+
+.profile-library-modal .close-modal-btn {
+  top: 1.05rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+}
+
+.profile-library-modal .modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.profile-library-modal .modal-body {
+  gap: 0.9rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+  font-family: var(--font-sans);
+}
+
+.profile-library-tip,
+.profile-entry-limit {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.profile-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.profile-entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.profile-entry.compact {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 42px;
+  padding: 0.5rem 0.7rem;
+}
+
+.profile-entry-index {
+  display: inline-flex;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-faint);
+  color: var(--accent-dim);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.profile-entry-summary {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary-strong);
+  cursor: text;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-in-out);
+}
+
+.profile-entry-summary:hover,
+.profile-entry-summary:focus-visible {
+  color: var(--text-primary);
+}
+
+.profile-entry-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.6rem;
+}
+
+.profile-entry-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile-entry-heading label {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.profile-entry-action {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  transition: color var(--duration-fast) var(--ease-in-out);
+}
+
+.profile-entry-action.remove:hover {
+  color: var(--danger);
+}
+
+.profile-entry textarea {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 0.65rem 0.75rem;
+  color: var(--text-primary);
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  transition: border-color var(--duration-fast) var(--ease-in-out);
+}
+
+.profile-entry textarea:focus {
+  border-color: var(--accent-dim);
+}
+
+.profile-entry textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.profile-entry-count {
+  align-self: flex-end;
+  color: var(--text-tertiary);
+  font-size: 0.7rem;
+}
+
+.profile-entry-add {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.8rem;
+  background: transparent;
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  transition:
+    color var(--duration-fast) var(--ease-in-out),
+    border-color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out);
+}
+
+.profile-entry-add:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--border-accent);
+  background: var(--accent-faint);
+}
+
+.profile-entry-add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.profile-entry-limit {
+  margin-top: -0.45rem;
+  color: var(--text-tertiary);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 640px) {
+  .profile-library-modal .modal-body {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

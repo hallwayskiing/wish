@@ -24,8 +24,7 @@ export interface AIPlan {
   timeline?: string;
   roadmap?: AIPlanPhase[];
   phases?: AIPlanPhase[];
-  habits?: string[];
-  habitsAndTools?: string[];
+  habitsAndSystems?: string[];
   pitfalls?: string[];
   firstStep?: string;
 }

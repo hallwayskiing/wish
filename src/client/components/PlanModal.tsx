@@ -44,7 +44,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({
   });
 
   const rawSteps: AIPlanPhase[] = plan.roadmap || plan.phases || [];
-  const habitsList = plan.habitsAndTools || plan.habits || [];
+  const habitsList = plan.habitsAndSystems || [];
   const pitfallsList = plan.pitfalls || [];
 
   const handleSave = async () => {

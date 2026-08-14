@@ -46,8 +46,7 @@ export function sanitizeAiPlan(obj: unknown): AIPlan {
     timeline: trimString(p.timeline),
     roadmap: sanitizePhases(p.roadmap),
     phases: sanitizePhases(p.phases),
-    habits: sanitizeStringArray(p.habits),
-    habitsAndTools: sanitizeStringArray(p.habitsAndTools),
+    habitsAndSystems: sanitizeStringArray(p.habitsAndSystems),
     pitfalls: sanitizeStringArray(p.pitfalls),
     firstStep: trimString(p.firstStep),
   };

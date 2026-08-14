@@ -52,8 +52,8 @@ function normalizeAiPlan(plan: AIPlan): AIPlan {
     normalized.roadmap = roadmap;
   }
 
-  if (Array.isArray(plan.habitsAndTools)) {
-    normalized.habitsAndTools = plan.habitsAndTools.map(trimValue).filter(Boolean);
+  if (Array.isArray(plan.habitsAndSystems)) {
+    normalized.habitsAndSystems = plan.habitsAndSystems.map(trimValue).filter(Boolean);
   }
   if (Array.isArray(plan.pitfalls)) {
     normalized.pitfalls = plan.pitfalls.map(trimValue).filter(Boolean);

@@ -19,10 +19,8 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         ? initialPlan.phases
         : []
   );
-  const [habitsAndTools, setHabitsAndTools] = useState<string[]>(
-    Array.isArray(initialPlan.habitsAndTools)
-      ? initialPlan.habitsAndTools
-      : initialPlan.habits || []
+  const [habitsAndSystems, setHabitsAndSystems] = useState<string[]>(
+    Array.isArray(initialPlan.habitsAndSystems) ? initialPlan.habitsAndSystems : []
   );
   const [pitfalls, setPitfalls] = useState<string[]>(
     Array.isArray(initialPlan.pitfalls) ? initialPlan.pitfalls : []
@@ -47,12 +45,10 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
     );
   }, [initialPlan.roadmap, initialPlan.phases]);
   useEffect(() => {
-    setHabitsAndTools(
-      Array.isArray(initialPlan.habitsAndTools)
-        ? initialPlan.habitsAndTools
-        : initialPlan.habits || []
+    setHabitsAndSystems(
+      Array.isArray(initialPlan.habitsAndSystems) ? initialPlan.habitsAndSystems : []
     );
-  }, [initialPlan.habitsAndTools, initialPlan.habits]);
+  }, [initialPlan.habitsAndSystems]);
   useEffect(() => {
     setPitfalls(Array.isArray(initialPlan.pitfalls) ? initialPlan.pitfalls : []);
   }, [initialPlan.pitfalls]);
@@ -62,7 +58,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
       summary,
       inspiration,
       roadmap,
-      habitsAndTools,
+      habitsAndSystems,
       pitfalls,
       firstStep,
       ...patch,
@@ -73,7 +69,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
     summary,
     inspiration,
     roadmap,
-    habitsAndTools,
+    habitsAndSystems,
     pitfalls,
     firstStep,
   };
@@ -99,21 +95,21 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
   };
 
   const handleHabitChange = (index: number, value: string) => {
-    const updated = habitsAndTools.map((item, idx) => (idx === index ? value : item));
-    setHabitsAndTools(updated);
-    notifyChange({ habitsAndTools: updated });
+    const updated = habitsAndSystems.map((item, idx) => (idx === index ? value : item));
+    setHabitsAndSystems(updated);
+    notifyChange({ habitsAndSystems: updated });
   };
 
   const handleAddHabit = () => {
-    const updated = [...habitsAndTools, ''];
-    setHabitsAndTools(updated);
-    notifyChange({ habitsAndTools: updated });
+    const updated = [...habitsAndSystems, ''];
+    setHabitsAndSystems(updated);
+    notifyChange({ habitsAndSystems: updated });
   };
 
   const handleRemoveHabit = (index: number) => {
-    const updated = habitsAndTools.filter((_, idx) => idx !== index);
-    setHabitsAndTools(updated);
-    notifyChange({ habitsAndTools: updated });
+    const updated = habitsAndSystems.filter((_, idx) => idx !== index);
+    setHabitsAndSystems(updated);
+    notifyChange({ habitsAndSystems: updated });
   };
 
   const handlePitfallChange = (index: number, value: string) => {
@@ -249,19 +245,19 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         </button>
       </div>
 
-      {/* Micro-habits & Tools */}
+      {/* Key Habits & Execution Systems */}
       <div className="plan-form-section">
         <div className="plan-section-title">
-          <span className="section-icon">✦</span> 关键微习惯与工具
+          <span className="section-icon">✦</span> 关键习惯与执行机制
         </div>
         <div className="dynamic-items-list">
-          {habitsAndTools.map((habit, idx) => (
+          {habitsAndSystems.map((habit, idx) => (
             <div key={`${idx}-${habit}`} className="dynamic-item-row">
               <input
                 id={`${idPrefix}-habit-${idx}`}
                 type="text"
                 className="plan-form-input habit-item-input"
-                placeholder="输入建议养成的微习惯或推荐工具..."
+                placeholder="输入包含频率、触发条件或反馈检查的执行机制..."
                 value={habit}
                 onChange={e => handleHabitChange(idx, e.target.value)}
               />
@@ -277,7 +273,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
           ))}
         </div>
         <button type="button" className="btn-add-item" onClick={handleAddHabit}>
-          ＋ 添加微习惯/工具
+          ＋ 添加习惯/执行机制
         </button>
       </div>
 

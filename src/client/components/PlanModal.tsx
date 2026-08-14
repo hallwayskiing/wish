@@ -124,6 +124,9 @@ export const PlanModal: React.FC<PlanModalProps> = ({
           <h2 className="modal-wish-title" id="modalWishTitle">
             “{wish.title}”
           </h2>
+        </div>
+
+        <div className="modal-body" id="modalWishContent">
           <div className="modal-summary" id="modalWishSummary">
             <div className="modal-summary-label">
               <span aria-hidden="true">🍃</span> {t('summaryLabel')}
@@ -132,9 +135,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({
               “{plan.summary?.trim() || t('summaryFallback')}”
             </p>
           </div>
-        </div>
 
-        <div className="modal-body" id="modalWishContent">
           <div className="inspiration-card">
             <div className="card-content">
               <h4>
@@ -170,24 +171,24 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             </div>
           </div>
 
-          <div className="plan-grid-2">
-            <div className="plan-box box-habits">
+          <div className="plan-list-sections">
+            <section className="plan-list-section box-habits">
               <h4>{t('habitsTitle')}</h4>
               <ul id="planHabits">
                 {habitsList.map((item, idx) => (
                   <li key={`${idx}-${item}`}>{item}</li>
                 ))}
               </ul>
-            </div>
+            </section>
 
-            <div className="plan-box box-pitfalls">
+            <section className="plan-list-section box-pitfalls">
               <h4>{t('pitfallsTitle')}</h4>
               <ul id="planPitfalls">
                 {pitfallsList.map((item, idx) => (
                   <li key={`${idx}-${item}`}>{item}</li>
                 ))}
               </ul>
-            </div>
+            </section>
           </div>
 
           <div className="first-step-box">

@@ -22,20 +22,22 @@ export const ProfileLibraryModal: React.FC<ProfileLibraryModalProps> = ({
   onSave,
 }) => {
   const { t } = useLanguage();
-  const [draftEntries, setDraftEntries] = useState<string[]>(entries);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [draftEntries, setDraftEntries] = useState<Array<{ id: string; text: string }>>(() =>
+    entries.map(text => ({ id: crypto.randomUUID(), text }))
+  );
+  const [editingId, setEditingId] = useState<string | null>(null);
   const editingTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const dialogRef = useDialogA11y(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
-      setDraftEntries(entries);
-      setEditingIndex(null);
+      setDraftEntries(entries.map(text => ({ id: crypto.randomUUID(), text })));
+      setEditingId(null);
     }
   }, [entries, isOpen]);
 
   useEffect(() => {
-    if (!isOpen || editingIndex === null) return undefined;
+    if (!isOpen || editingId === null) return undefined;
     const focusFrame = requestAnimationFrame(() => {
       const textarea = editingTextareaRef.current;
       if (!textarea) return;
@@ -44,36 +46,30 @@ export const ProfileLibraryModal: React.FC<ProfileLibraryModalProps> = ({
       textarea.setSelectionRange(cursorPosition, cursorPosition);
     });
     return () => cancelAnimationFrame(focusFrame);
-  }, [editingIndex, isOpen]);
+  }, [editingId, isOpen]);
 
   if (!isOpen) return null;
 
-  const handleEntryChange = (index: number, value: string) => {
+  const handleEntryChange = (id: string, value: string) => {
     setDraftEntries(current =>
-      current.map((entry, entryIndex) => (entryIndex === index ? value : entry))
+      current.map(entry => (entry.id === id ? { ...entry, text: value } : entry))
     );
   };
 
-  const handleRemoveEntry = (index: number) => {
-    setDraftEntries(current => {
-      const next = current.filter((_, entryIndex) => entryIndex !== index);
-      return next;
-    });
-    setEditingIndex(current => {
-      if (draftEntries.length <= 1) return null;
-      if (current === null || current === index) return null;
-      return current > index ? current - 1 : current;
-    });
+  const handleRemoveEntry = (id: string) => {
+    setDraftEntries(current => current.filter(entry => entry.id !== id));
+    setEditingId(current => (current === id ? null : current));
   };
 
   const handleAddEntry = () => {
     if (draftEntries.length >= MAX_PROFILE_ENTRIES) return;
-    setEditingIndex(draftEntries.length);
-    setDraftEntries(current => [...current, '']);
+    const id = crypto.randomUUID();
+    setDraftEntries(current => [...current, { id, text: '' }]);
+    setEditingId(id);
   };
 
   const handleSave = () => {
-    onSave(normalizePersonalProfile(draftEntries));
+    onSave(normalizePersonalProfile(draftEntries.map(entry => entry.text)));
     onClose();
   };
 
@@ -110,20 +106,20 @@ export const ProfileLibraryModal: React.FC<ProfileLibraryModalProps> = ({
         <div className="modal-body">
           <p className="profile-library-tip">{t('profileLibraryTip')}</p>
           <div className="profile-entry-list">
-            {draftEntries.map((entry, index) => {
-              const isEditing = editingIndex === index;
+            {draftEntries.map((item, index) => {
+              const isEditing = editingId === item.id;
               return (
-                <div className={`profile-entry ${isEditing ? 'editing' : 'compact'}`} key={index}>
+                <div className={`profile-entry ${isEditing ? 'editing' : 'compact'}`} key={item.id}>
                   {isEditing ? (
                     <>
                       <div className="profile-entry-heading">
-                        <label htmlFor={`profileEntry-${index}`}>
+                        <label htmlFor={`profileEntry-${item.id}`}>
                           {t('profileEntryLabel')} {index + 1}
                         </label>
                         <button
                           className="profile-entry-action remove"
                           type="button"
-                          onClick={() => handleRemoveEntry(index)}
+                          onClick={() => handleRemoveEntry(item.id)}
                           aria-label={`${t('removeProfileEntry')} ${index + 1}`}
                           title={t('removeProfileEntry')}
                         >
@@ -131,27 +127,27 @@ export const ProfileLibraryModal: React.FC<ProfileLibraryModalProps> = ({
                         </button>
                       </div>
                       <textarea
-                        id={`profileEntry-${index}`}
+                        id={`profileEntry-${item.id}`}
                         rows={2}
                         ref={editingTextareaRef}
                         maxLength={MAX_PROFILE_ENTRY_LENGTH}
                         placeholder={t('profileEntryPlaceholder')}
-                        value={entry}
-                        onChange={event => handleEntryChange(index, event.target.value)}
+                        value={item.text}
+                        onChange={event => handleEntryChange(item.id, event.target.value)}
                         onBlur={event => {
                           const profileEntry = event.currentTarget.closest('.profile-entry');
                           const nextFocus = event.relatedTarget;
                           if (nextFocus instanceof Node && profileEntry?.contains(nextFocus))
                             return;
                           if (!event.currentTarget.value.trim()) {
-                            handleRemoveEntry(index);
+                            handleRemoveEntry(item.id);
                           } else {
-                            setEditingIndex(current => (current === index ? null : current));
+                            setEditingId(current => (current === item.id ? null : current));
                           }
                         }}
                       />
                       <span className="profile-entry-count">
-                        {entry.length}/{MAX_PROFILE_ENTRY_LENGTH}
+                        {item.text.length}/{MAX_PROFILE_ENTRY_LENGTH}
                       </span>
                     </>
                   ) : (
@@ -162,16 +158,16 @@ export const ProfileLibraryModal: React.FC<ProfileLibraryModalProps> = ({
                       <button
                         className="profile-entry-summary"
                         type="button"
-                        onClick={() => setEditingIndex(index)}
-                        title={entry}
+                        onClick={() => setEditingId(item.id)}
+                        title={item.text}
                       >
-                        {entry}
+                        {item.text}
                       </button>
                       <div className="profile-entry-actions">
                         <button
                           className="profile-entry-action remove"
                           type="button"
-                          onClick={() => handleRemoveEntry(index)}
+                          onClick={() => handleRemoveEntry(item.id)}
                           aria-label={`${t('removeProfileEntry')} ${index + 1}`}
                         >
                           {t('removeProfileEntry')}

@@ -1,6 +1,15 @@
 import type React from 'react';
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import type { AIPlan, AIPlanPhase } from '../../types.js';
+
+interface EditorPhase extends AIPlanPhase {
+  id: string;
+}
+
+interface EditorListItem {
+  id: string;
+  text: string;
+}
 
 interface PlanEditorModalProps {
   initialPlan?: AIPlan;
@@ -12,122 +21,112 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
   const [summary, setSummary] = useState(initialPlan.summary || '');
   const [inspiration, setInspiration] = useState(initialPlan.inspiration || '');
   const [firstStep, setFirstStep] = useState(initialPlan.firstStep || '');
-  const [roadmap, setRoadmap] = useState<AIPlanPhase[]>(
-    Array.isArray(initialPlan.roadmap)
+  const [roadmap, setRoadmap] = useState<EditorPhase[]>(() => {
+    const raw = Array.isArray(initialPlan.roadmap)
       ? initialPlan.roadmap
       : Array.isArray(initialPlan.phases)
         ? initialPlan.phases
-        : []
-  );
-  const [habitsAndSystems, setHabitsAndSystems] = useState<string[]>(
-    Array.isArray(initialPlan.habitsAndSystems) ? initialPlan.habitsAndSystems : []
-  );
-  const [pitfalls, setPitfalls] = useState<string[]>(
-    Array.isArray(initialPlan.pitfalls) ? initialPlan.pitfalls : []
-  );
+        : [];
+    return raw.map(step => ({ ...step, id: crypto.randomUUID() }));
+  });
+  const [habitsAndSystems, setHabitsAndSystems] = useState<EditorListItem[]>(() => {
+    const raw = Array.isArray(initialPlan.habitsAndSystems) ? initialPlan.habitsAndSystems : [];
+    return raw.map(text => ({ id: crypto.randomUUID(), text }));
+  });
+  const [pitfalls, setPitfalls] = useState<EditorListItem[]>(() => {
+    const raw = Array.isArray(initialPlan.pitfalls) ? initialPlan.pitfalls : [];
+    return raw.map(text => ({ id: crypto.randomUUID(), text }));
+  });
 
-  useEffect(() => {
-    setSummary(initialPlan.summary || '');
-  }, [initialPlan.summary]);
-  useEffect(() => {
-    setInspiration(initialPlan.inspiration || '');
-  }, [initialPlan.inspiration]);
-  useEffect(() => {
-    setFirstStep(initialPlan.firstStep || '');
-  }, [initialPlan.firstStep]);
-  useEffect(() => {
-    setRoadmap(
-      Array.isArray(initialPlan.roadmap)
-        ? initialPlan.roadmap
-        : Array.isArray(initialPlan.phases)
-          ? initialPlan.phases
-          : []
-    );
-  }, [initialPlan.roadmap, initialPlan.phases]);
-  useEffect(() => {
-    setHabitsAndSystems(
-      Array.isArray(initialPlan.habitsAndSystems) ? initialPlan.habitsAndSystems : []
-    );
-  }, [initialPlan.habitsAndSystems]);
-  useEffect(() => {
-    setPitfalls(Array.isArray(initialPlan.pitfalls) ? initialPlan.pitfalls : []);
-  }, [initialPlan.pitfalls]);
+  const serializePlan = (
+    nextSummary = summary,
+    nextInspiration = inspiration,
+    nextRoadmap = roadmap,
+    nextHabits = habitsAndSystems,
+    nextPitfalls = pitfalls,
+    nextFirstStep = firstStep
+  ): AIPlan => ({
+    summary: nextSummary,
+    inspiration: nextInspiration,
+    roadmap: nextRoadmap.map(({ id: _id, ...step }) => step),
+    habitsAndSystems: nextHabits.map(item => item.text),
+    pitfalls: nextPitfalls.map(item => item.text),
+    firstStep: nextFirstStep,
+  });
 
-  const notifyChange = (patch: Partial<AIPlan>) => {
-    onChange({
-      summary,
-      inspiration,
-      roadmap,
-      habitsAndSystems,
-      pitfalls,
-      firstStep,
-      ...patch,
-    });
+  const notifyChange = (updatedPlan: AIPlan) => {
+    onChange(updatedPlan);
   };
 
-  const previewPlan: AIPlan = {
-    summary,
-    inspiration,
-    roadmap,
-    habitsAndSystems,
-    pitfalls,
-    firstStep,
-  };
-
-  const handleStepChange = (index: number, field: keyof AIPlanPhase, value: string) => {
-    const updated = roadmap.map((step, idx) =>
-      idx === index ? { ...step, [field]: value } : step
-    );
+  const handleStepChange = (id: string, field: keyof AIPlanPhase, value: string) => {
+    const updated = roadmap.map(step => (step.id === id ? { ...step, [field]: value } : step));
     setRoadmap(updated);
-    notifyChange({ roadmap: updated });
+    notifyChange(
+      serializePlan(summary, inspiration, updated, habitsAndSystems, pitfalls, firstStep)
+    );
   };
 
   const handleAddStep = () => {
-    const updated = [...roadmap, { phase: '', timeline: '', title: '', action: '' }];
+    const updated = [
+      ...roadmap,
+      { id: crypto.randomUUID(), phase: '', timeline: '', title: '', action: '' },
+    ];
     setRoadmap(updated);
-    notifyChange({ roadmap: updated });
+    notifyChange(
+      serializePlan(summary, inspiration, updated, habitsAndSystems, pitfalls, firstStep)
+    );
   };
 
-  const handleRemoveStep = (index: number) => {
-    const updated = roadmap.filter((_, idx) => idx !== index);
+  const handleRemoveStep = (id: string) => {
+    const updated = roadmap.filter(step => step.id !== id);
     setRoadmap(updated);
-    notifyChange({ roadmap: updated });
+    notifyChange(
+      serializePlan(summary, inspiration, updated, habitsAndSystems, pitfalls, firstStep)
+    );
   };
 
-  const handleHabitChange = (index: number, value: string) => {
-    const updated = habitsAndSystems.map((item, idx) => (idx === index ? value : item));
+  const handleHabitChange = (id: string, value: string) => {
+    const updated = habitsAndSystems.map(item =>
+      item.id === id ? { ...item, text: value } : item
+    );
     setHabitsAndSystems(updated);
-    notifyChange({ habitsAndSystems: updated });
+    notifyChange(serializePlan(summary, inspiration, roadmap, updated, pitfalls, firstStep));
   };
 
   const handleAddHabit = () => {
-    const updated = [...habitsAndSystems, ''];
+    const updated = [...habitsAndSystems, { id: crypto.randomUUID(), text: '' }];
     setHabitsAndSystems(updated);
-    notifyChange({ habitsAndSystems: updated });
+    notifyChange(serializePlan(summary, inspiration, roadmap, updated, pitfalls, firstStep));
   };
 
-  const handleRemoveHabit = (index: number) => {
-    const updated = habitsAndSystems.filter((_, idx) => idx !== index);
+  const handleRemoveHabit = (id: string) => {
+    const updated = habitsAndSystems.filter(item => item.id !== id);
     setHabitsAndSystems(updated);
-    notifyChange({ habitsAndSystems: updated });
+    notifyChange(serializePlan(summary, inspiration, roadmap, updated, pitfalls, firstStep));
   };
 
-  const handlePitfallChange = (index: number, value: string) => {
-    const updated = pitfalls.map((item, idx) => (idx === index ? value : item));
+  const handlePitfallChange = (id: string, value: string) => {
+    const updated = pitfalls.map(item => (item.id === id ? { ...item, text: value } : item));
     setPitfalls(updated);
-    notifyChange({ pitfalls: updated });
+    notifyChange(
+      serializePlan(summary, inspiration, roadmap, habitsAndSystems, updated, firstStep)
+    );
   };
 
   const handleAddPitfall = () => {
-    const updated = [...pitfalls, ''];
+    const updated = [...pitfalls, { id: crypto.randomUUID(), text: '' }];
     setPitfalls(updated);
-    notifyChange({ pitfalls: updated });
+    notifyChange(
+      serializePlan(summary, inspiration, roadmap, habitsAndSystems, updated, firstStep)
+    );
   };
 
-  const handleRemovePitfall = (index: number) => {
-    const updated = pitfalls.filter((_, idx) => idx !== index);
+  const handleRemovePitfall = (id: string) => {
+    const updated = pitfalls.filter(item => item.id !== id);
     setPitfalls(updated);
-    notifyChange({ pitfalls: updated });
+    notifyChange(
+      serializePlan(summary, inspiration, roadmap, habitsAndSystems, updated, firstStep)
+    );
   };
 
   return (
@@ -142,8 +141,18 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
           placeholder="古风五言/七言单句，如：夜阑卧听风吹雨 / 英文为十四行诗单句"
           value={summary}
           onChange={e => {
-            setSummary(e.target.value);
-            notifyChange({ summary: e.target.value });
+            const nextSummary = e.target.value;
+            setSummary(nextSummary);
+            notifyChange(
+              serializePlan(
+                nextSummary,
+                inspiration,
+                roadmap,
+                habitsAndSystems,
+                pitfalls,
+                firstStep
+              )
+            );
           }}
         />
       </div>
@@ -158,8 +167,18 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
           placeholder="输入温暖励志且富有哲理的洞察与激励..."
           value={inspiration}
           onChange={e => {
-            setInspiration(e.target.value);
-            notifyChange({ inspiration: e.target.value });
+            const nextInspiration = e.target.value;
+            setInspiration(nextInspiration);
+            notifyChange(
+              serializePlan(
+                summary,
+                nextInspiration,
+                roadmap,
+                habitsAndSystems,
+                pitfalls,
+                firstStep
+              )
+            );
           }}
         />
       </div>
@@ -170,71 +189,68 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         </div>
         <div className="roadmap-steps-list">
           {roadmap.map((step, idx) => (
-            <div
-              key={`${idx}-${step.phase}-${step.title ?? step.name}`}
-              className="roadmap-step-editor"
-            >
+            <div key={step.id} className="roadmap-step-editor">
               <div className="roadmap-step-header">
                 <span className="step-num-badge">阶段 {idx + 1}</span>
                 <button
                   type="button"
                   className="btn-remove-step"
-                  onClick={() => handleRemoveStep(idx)}
+                  onClick={() => handleRemoveStep(step.id)}
                 >
                   ✕ 删除阶段
                 </button>
               </div>
               <div className="step-grid-2">
                 <div className="field">
-                  <label className="field-label" htmlFor={`${idPrefix}-phase-${idx}`}>
+                  <label className="field-label" htmlFor={`${idPrefix}-phase-${step.id}`}>
                     阶段名称
                   </label>
                   <input
-                    id={`${idPrefix}-phase-${idx}`}
+                    id={`${idPrefix}-phase-${step.id}`}
                     type="text"
                     className="plan-form-input step-phase-input"
                     placeholder="如: 准备阶段"
                     value={step.phase || ''}
-                    onChange={e => handleStepChange(idx, 'phase', e.target.value)}
+                    onChange={e => handleStepChange(step.id, 'phase', e.target.value)}
                   />
                 </div>
                 <div className="field">
-                  <label className="field-label" htmlFor={`${idPrefix}-timeline-${idx}`}>
+                  <label className="field-label" htmlFor={`${idPrefix}-timeline-${step.id}`}>
                     预计周期
                   </label>
                   <input
-                    id={`${idPrefix}-timeline-${idx}`}
+                    id={`${idPrefix}-timeline-${step.id}`}
                     type="text"
                     className="plan-form-input step-timeline-input"
                     placeholder="如: 第 1 - 2 周"
                     value={step.timeline || ''}
-                    onChange={e => handleStepChange(idx, 'timeline', e.target.value)}
+                    onChange={e => handleStepChange(step.id, 'timeline', e.target.value)}
                   />
                 </div>
               </div>
               <div className="field">
-                <label className="field-label" htmlFor={`${idPrefix}-title-${idx}`}>
+                <label className="field-label" htmlFor={`${idPrefix}-title-${step.id}`}>
                   阶段主题
                 </label>
                 <input
-                  id={`${idPrefix}-title-${idx}`}
+                  id={`${idPrefix}-title-${step.id}`}
                   type="text"
                   className="plan-form-input step-title-input"
                   placeholder="输入阶段核心主题..."
                   value={step.title || step.name || ''}
-                  onChange={e => handleStepChange(idx, 'title', e.target.value)}
+                  onChange={e => handleStepChange(step.id, 'title', e.target.value)}
                 />
               </div>
               <div className="field">
-                <label className="field-label" htmlFor={`${idPrefix}-action-${idx}`}>
+                <label className="field-label" htmlFor={`${idPrefix}-action-${step.id}`}>
                   具体行动方案
                 </label>
                 <textarea
-                  id={`${idPrefix}-action-${idx}`}
+                  id={`${idPrefix}-action-${step.id}`}
                   className="plan-form-textarea step-action-input"
                   placeholder="详细说明本阶段需执行的具体步骤..."
                   value={step.action || (Array.isArray(step.tasks) ? step.tasks.join('; ') : '')}
-                  onChange={e => handleStepChange(idx, 'action', e.target.value)}
+                  onChange={e => handleStepChange(step.id, 'action', e.target.value)}
                 />
               </div>
             </div>
@@ -251,21 +267,21 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
           <span className="section-icon">✦</span> 关键习惯与执行机制
         </div>
         <div className="dynamic-items-list">
-          {habitsAndSystems.map((habit, idx) => (
-            <div key={`${idx}-${habit}`} className="dynamic-item-row">
+          {habitsAndSystems.map(habit => (
+            <div key={habit.id} className="dynamic-item-row">
               <input
-                id={`${idPrefix}-habit-${idx}`}
+                id={`${idPrefix}-habit-${habit.id}`}
                 type="text"
                 className="plan-form-input habit-item-input"
                 placeholder="输入包含频率、触发条件或反馈检查的执行机制..."
-                value={habit}
-                onChange={e => handleHabitChange(idx, e.target.value)}
+                value={habit.text}
+                onChange={e => handleHabitChange(habit.id, e.target.value)}
               />
               <button
                 type="button"
                 className="btn-remove-item"
                 title="删除项"
-                onClick={() => handleRemoveHabit(idx)}
+                onClick={() => handleRemoveHabit(habit.id)}
               >
                 ✕
               </button>
@@ -283,21 +299,21 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
           <span className="section-icon">✦</span> 避坑指南与应对策略
         </div>
         <div className="dynamic-items-list">
-          {pitfalls.map((pitfall, idx) => (
-            <div key={`${idx}-${pitfall}`} className="dynamic-item-row">
+          {pitfalls.map(pitfall => (
+            <div key={pitfall.id} className="dynamic-item-row">
               <input
-                id={`${idPrefix}-pitfall-${idx}`}
+                id={`${idPrefix}-pitfall-${pitfall.id}`}
                 type="text"
                 className="plan-form-input pitfall-item-input"
                 placeholder="输入可能遇到的坑及对应解决办法..."
-                value={pitfall}
-                onChange={e => handlePitfallChange(idx, e.target.value)}
+                value={pitfall.text}
+                onChange={e => handlePitfallChange(pitfall.id, e.target.value)}
               />
               <button
                 type="button"
                 className="btn-remove-item"
                 title="删除项"
-                onClick={() => handleRemovePitfall(idx)}
+                onClick={() => handleRemovePitfall(pitfall.id)}
               >
                 ✕
               </button>
@@ -320,8 +336,18 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
           placeholder="24 小时内可以立即开始并完成的第一小步..."
           value={firstStep}
           onChange={e => {
-            setFirstStep(e.target.value);
-            notifyChange({ firstStep: e.target.value });
+            const nextFirstStep = e.target.value;
+            setFirstStep(nextFirstStep);
+            notifyChange(
+              serializePlan(
+                summary,
+                inspiration,
+                roadmap,
+                habitsAndSystems,
+                pitfalls,
+                nextFirstStep
+              )
+            );
           }}
         />
       </div>
@@ -331,7 +357,7 @@ export const PlanEditorModal: React.FC<PlanEditorModalProps> = ({ initialPlan = 
         <textarea
           className="json-debug-textarea"
           readOnly
-          value={JSON.stringify(previewPlan, null, 2)}
+          value={JSON.stringify(serializePlan(), null, 2)}
           aria-label="原始 JSON 数据"
         />
       </details>

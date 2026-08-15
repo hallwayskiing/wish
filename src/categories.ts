@@ -46,7 +46,6 @@ export const CATEGORY_NAMES: Readonly<Record<'zh' | 'en', Readonly<Record<Catego
     en: Object.freeze({
       growth: 'Growth',
       career: 'Career',
-      learning: 'Learning',
       relationship: 'Relationship',
       health: 'Health',
       creative: 'Creative',

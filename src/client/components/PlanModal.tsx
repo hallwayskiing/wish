@@ -153,7 +153,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <div className="roadmap-timeline" id="planRoadmap">
               {rawSteps.map((step, idx) => (
                 <div
-                  key={`${idx}-${step.phase}-${step.title ?? step.name}`}
+                  key={`${step.phase ?? ''}:${step.title ?? step.name ?? ''}:${step.timeline ?? ''}:${step.action ?? ''}`}
                   className="roadmap-step-card"
                 >
                   <div className="step-header">
@@ -175,8 +175,8 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <section className="plan-list-section box-habits">
               <h4>{t('habitsTitle')}</h4>
               <ul id="planHabits">
-                {habitsList.map((item, idx) => (
-                  <li key={`${idx}-${item}`}>{item}</li>
+                {habitsList.map(item => (
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             </section>
@@ -184,8 +184,8 @@ export const PlanModal: React.FC<PlanModalProps> = ({
             <section className="plan-list-section box-pitfalls">
               <h4>{t('pitfallsTitle')}</h4>
               <ul id="planPitfalls">
-                {pitfallsList.map((item, idx) => (
-                  <li key={`${idx}-${item}`}>{item}</li>
+                {pitfallsList.map(item => (
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             </section>

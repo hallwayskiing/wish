@@ -7,20 +7,23 @@ interface ApiKeyModalProps {
   isOpen: boolean;
   apiKey: string;
   modelTier: string;
+  thinkingLevel: string;
   onClose: () => void;
-  onSaveApiKey: (key: string, tier: string) => void;
+  onSaveApiKey: (key: string, tier: string, thinkingLevel: string) => void;
 }
 
 export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   isOpen,
   apiKey,
   modelTier,
+  thinkingLevel,
   onClose,
   onSaveApiKey,
 }) => {
   const { t } = useLanguage();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [tier, setTier] = useState<string>(modelTier);
+  const [level, setLevel] = useState<string>(thinkingLevel);
   const dialogRef = useDialogA11y(isOpen, onClose);
 
   useEffect(() => {
@@ -29,12 +32,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       inputRef.current.value = apiKey;
     }
     setTier(modelTier);
-  }, [apiKey, modelTier, isOpen]);
+    setLevel(thinkingLevel);
+  }, [apiKey, modelTier, thinkingLevel, isOpen]);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    onSaveApiKey(inputRef.current?.value.trim() || '', tier);
+    onSaveApiKey(inputRef.current?.value.trim() || '', tier, level);
     onClose();
   };
 
@@ -42,7 +46,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     if (inputRef.current) {
       inputRef.current.value = '';
     }
-    onSaveApiKey('', tier);
+    onSaveApiKey('', tier, level);
     onClose();
   };
 
@@ -146,6 +150,65 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                   <span className="model-tier-name">PRO</span>
                   <span className="model-tier-desc">{t('modelTierPro').replace('PRO · ', '')}</span>
                   <span className="model-tier-model">gemini-pro-latest</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset className="category-selector model-tier-fieldset thinking-level-fieldset">
+            <legend className="section-label">{t('thinkingLevelLabel')}</legend>
+            <div className="model-tier-grid" role="radiogroup" aria-label={t('thinkingLevelLabel')}>
+              <label className="model-tier-card">
+                <input
+                  type="radio"
+                  name="thinkingLevel"
+                  value="LOW"
+                  checked={level === 'LOW'}
+                  onChange={() => setLevel('LOW')}
+                />
+                <span className="model-tier-icon" aria-hidden="true">
+                  ✧
+                </span>
+                <span className="model-tier-meta">
+                  <span className="model-tier-name">LOW</span>
+                  <span className="model-tier-desc">
+                    {t('thinkingLevelLow').replace('LOW · ', '')}
+                  </span>
+                </span>
+              </label>
+              <label className="model-tier-card">
+                <input
+                  type="radio"
+                  name="thinkingLevel"
+                  value="MEDIUM"
+                  checked={level === 'MEDIUM'}
+                  onChange={() => setLevel('MEDIUM')}
+                />
+                <span className="model-tier-icon" aria-hidden="true">
+                  ✦
+                </span>
+                <span className="model-tier-meta">
+                  <span className="model-tier-name">MEDIUM</span>
+                  <span className="model-tier-desc">
+                    {t('thinkingLevelMedium').replace('MEDIUM · ', '')}
+                  </span>
+                </span>
+              </label>
+              <label className="model-tier-card">
+                <input
+                  type="radio"
+                  name="thinkingLevel"
+                  value="HIGH"
+                  checked={level === 'HIGH'}
+                  onChange={() => setLevel('HIGH')}
+                />
+                <span className="model-tier-icon" aria-hidden="true">
+                  ★
+                </span>
+                <span className="model-tier-meta">
+                  <span className="model-tier-name">HIGH</span>
+                  <span className="model-tier-desc">
+                    {t('thinkingLevelHigh').replace('HIGH · ', '')}
+                  </span>
                 </span>
               </label>
             </div>

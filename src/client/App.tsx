@@ -34,6 +34,10 @@ const MainContent: React.FC = () => {
     const v = localStorage.getItem('gemini_model_tier');
     return v === 'FLASH' || v === 'PRO' || v === 'LITE' ? v : 'LITE';
   });
+  const [thinkingLevel, setThinkingLevel] = useState<string>(() => {
+    const v = localStorage.getItem('gemini_thinking_level');
+    return v === 'LOW' || v === 'MEDIUM' || v === 'HIGH' ? v : 'MEDIUM';
+  });
   const [personalProfile, setPersonalProfile] = useState<string[]>(loadPersonalProfile);
 
   // Modals state
@@ -84,16 +88,19 @@ const MainContent: React.FC = () => {
     toastTimersRef.current.add(timer);
   }, []);
 
-  const handleSaveApiKey = (key: string, tier: string) => {
+  const handleSaveApiKey = (key: string, tier: string, level: string) => {
     setCustomApiKey(key);
     const normalizedTier = tier === 'FLASH' || tier === 'PRO' ? tier : 'LITE';
     setModelTier(normalizedTier);
+    const normalizedLevel = level === 'LOW' || level === 'HIGH' ? level : 'MEDIUM';
+    setThinkingLevel(normalizedLevel);
     if (key) {
       localStorage.setItem('gemini_api_key', key);
     } else {
       localStorage.removeItem('gemini_api_key');
     }
     localStorage.setItem('gemini_model_tier', normalizedTier);
+    localStorage.setItem('gemini_thinking_level', normalizedLevel);
     showToast(t(key ? 'apiKeySaved' : 'apiKeyCleared'));
   };
 
@@ -149,6 +156,7 @@ const MainContent: React.FC = () => {
         <WishHero
           customApiKey={customApiKey}
           modelTier={modelTier}
+          thinkingLevel={thinkingLevel}
           personalProfile={personalProfile}
           onWishCreated={handleWishCreated}
           onShowToast={showToast}
@@ -168,6 +176,7 @@ const MainContent: React.FC = () => {
         isOpen={isApiKeyModalOpen}
         apiKey={customApiKey}
         modelTier={modelTier}
+        thinkingLevel={thinkingLevel}
         onClose={() => setIsApiKeyModalOpen(false)}
         onSaveApiKey={handleSaveApiKey}
       />

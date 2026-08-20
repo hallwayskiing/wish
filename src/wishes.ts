@@ -30,6 +30,7 @@ interface CreateWishDraftBody {
   customApiKey?: string;
   language?: string;
   modelTier?: string;
+  thinkingLevel?: string;
   personalProfile?: unknown;
 }
 
@@ -48,6 +49,7 @@ export async function createWishDraft(request: Request): Promise<Response> {
       apiKey: body?.customApiKey,
       language,
       modelTier: body?.modelTier,
+      thinkingLevel: body?.thinkingLevel,
       personalProfile: normalizePersonalProfile(body?.personalProfile),
     });
     return json({

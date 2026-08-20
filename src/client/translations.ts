@@ -51,6 +51,10 @@ export interface TranslationDictionary {
   modelTierLite: string;
   modelTierFlash: string;
   modelTierPro: string;
+  thinkingLevelLabel: string;
+  thinkingLevelLow: string;
+  thinkingLevelMedium: string;
+  thinkingLevelHigh: string;
   clearApiKey: string;
   saveConfig: string;
   footerQuote: string;
@@ -154,6 +158,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     modelTierLite: 'LITE · 极速',
     modelTierFlash: 'FLASH · 均衡',
     modelTierPro: 'PRO · 最佳',
+    thinkingLevelLabel: '思考深度：',
+    thinkingLevelLow: 'LOW · 浅思',
+    thinkingLevelMedium: 'MEDIUM · 均衡',
+    thinkingLevelHigh: 'HIGH · 深度',
     clearApiKey: '清除密钥',
     saveConfig: '保存配置',
     footerQuote: '“星光不问赶路人，岁月不负有心人。”',
@@ -262,6 +270,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     modelTierLite: 'LITE · Fast',
     modelTierFlash: 'FLASH · Balanced',
     modelTierPro: 'PRO · Strongest',
+    thinkingLevelLabel: 'Thinking Level:',
+    thinkingLevelLow: 'LOW · Fast',
+    thinkingLevelMedium: 'MEDIUM · Balanced',
+    thinkingLevelHigh: 'HIGH · Deep',
     clearApiKey: 'Clear Key',
     saveConfig: 'Save Config',
     footerQuote: '“May every step beneath the stars bring your wish closer.”',

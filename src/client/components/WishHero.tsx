@@ -7,6 +7,7 @@ import type { Wish } from '../types.js';
 interface WishHeroProps {
   customApiKey: string;
   modelTier: string;
+  thinkingLevel: string;
   personalProfile: string[];
   onWishCreated: (wish: Wish) => void;
   onShowToast: (msg: string) => void;
@@ -15,6 +16,7 @@ interface WishHeroProps {
 export const WishHero: React.FC<WishHeroProps> = ({
   customApiKey,
   modelTier,
+  thinkingLevel,
   personalProfile,
   onWishCreated,
   onShowToast,
@@ -72,7 +74,8 @@ export const WishHero: React.FC<WishHeroProps> = ({
         customApiKey,
         language,
         modelTier,
-        personalProfile
+        personalProfile,
+        thinkingLevel
       );
       setProgress(100);
       completionTimerRef.current = setTimeout(() => {

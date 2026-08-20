@@ -27,11 +27,30 @@ export function getGeminiModel(tier: unknown): string {
   return GEMINI_MODEL_MAP[normalizeGeminiTier(tier)];
 }
 
+export const THINKING_LEVELS = ['LOW', 'MEDIUM', 'HIGH'] as const;
+export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
+
+export const DEFAULT_THINKING_LEVEL: ThinkingLevel = 'MEDIUM';
+
+export function normalizeThinkingLevel(input: unknown): ThinkingLevel {
+  if (typeof input === 'string') {
+    const v = input.trim().toUpperCase();
+    if (v === 'LOW' || v === 'MEDIUM' || v === 'HIGH') return v;
+  }
+  return DEFAULT_THINKING_LEVEL;
+}
+
+export function getThinkingLevel(level: unknown): 'low' | 'medium' | 'high' {
+  const normalized = normalizeThinkingLevel(level);
+  return normalized.toLowerCase() as 'low' | 'medium' | 'high';
+}
+
 interface GeneratePlanOptions {
   wish: string;
   apiKey?: string;
   language?: string;
   modelTier?: string;
+  thinkingLevel?: string;
   personalProfile?: string[];
 }
 
@@ -82,6 +101,7 @@ export async function generatePlan({
   apiKey,
   language = 'zh',
   modelTier,
+  thinkingLevel,
   personalProfile,
 }: GeneratePlanOptions): Promise<GeneratePlanResult> {
   if (!apiKey) {
@@ -89,6 +109,7 @@ export async function generatePlan({
   }
 
   const modelName = getGeminiModel(modelTier);
+  const normalizedThinkingLevel = getThinkingLevel(thinkingLevel);
   const endpoint = new URL(
     `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`
   );
@@ -103,7 +124,7 @@ export async function generatePlan({
       generationConfig: {
         responseMimeType: 'application/json',
         thinkingConfig: {
-          thinkingLevel: 'high',
+          thinkingLevel: normalizedThinkingLevel,
           includeThoughts: false,
         },
       },
